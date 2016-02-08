@@ -51,6 +51,7 @@ from cStringIO import StringIO
 from IPython.display import clear_output, Image, display
 import scipy.ndimage as nd
 import scipy.signal
+import os
 
 def display_array(a, fmt='jpeg', rng=[0,1]):
   """Display an array as a picture."""
@@ -74,7 +75,14 @@ img_files = set(glob.glob("*.png")).union(set(glob.glob("*.jpg"))).union(set(glo
 # img_file = 'img7.png'
 # img_file = 'img9.png'
 for img_file in img_files:
+  img_save_dir = "squares_%s" % img_file[:-4]
+  if os.path.exists(img_save_dir):
+    print "Already processed %s, skipping..." % (img_save_dir)
+    continue
+  
+  # Load image
   img = PIL.Image.open(img_file)
+
 
   # Resize
   img_size = 256
@@ -412,9 +420,6 @@ for img_file in img_files:
 
   # <codecell>
 
-  import os
-  img_save_dir = "squares_%s" % img_file[:-4]
-
   if not have_squares:
       print "No squares to save"
   else:
@@ -425,8 +430,11 @@ for img_file in img_files:
       for i in range(64):
           sqr_filename = "%s/%s_%s%d.png" % (img_save_dir, img_file[:-4], letters[i%8], i/8+1)
           print "#%d: saving %s..." % (i, sqr_filename)
-                  
-          PIL.Image.fromarray(squares[:,:,i]).save(sqr_filename)
+        
+          # Make resized 32x32 image from matrix and save
+          PIL.Image.fromarray(squares[:,:,i]) \
+              .resize([32,32], PIL.Image.ADAPTIVE) \
+              .save(sqr_filename)
 
   # <codecell>
 
