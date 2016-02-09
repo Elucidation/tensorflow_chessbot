@@ -59,7 +59,7 @@ def display_array(a, fmt='jpeg', rng=[0,1]):
   a = np.uint8(np.clip(a, 0, 255))
   f = StringIO()
   PIL.Image.fromarray(a).save(f, fmt)
-  display(Image(data=f.getvalue()))
+  #display(Image(data=f.getvalue()))
 
 # <codecell>
 
@@ -218,25 +218,8 @@ for img_file in img_files:
   # Let's plot the responses of the summed gradients
 
   # <codecell>
-
-  # %matplotlib inline
-  import matplotlib.pyplot as plt
-
-  fig, (ax1, ax2) = plt.subplots(1,2,sharey=True, figsize=(15,5))
-
   peaks_x = hough_Dx.eval().flatten()
-  #peaks_x[peaks_x < 0] = 0
   peaks_y = hough_Dy.eval().flatten()
-  # peaks_y[peaks_y < 0] = 0
-
-  ax1.plot(peaks_x);
-  ax1.set_title('Hough Gradient X')
-  ax1.set_xlabel('Pixel')
-  ax1.set_xlim(0,peaks_x.size)
-  ax2.plot(peaks_y)
-  ax2.set_title('Hough Gradient Y')
-  ax2.set_xlim(0,peaks_y.size)
-  ax2.set_xlabel('Pixel');
 
   # <codecell>
 
@@ -288,40 +271,6 @@ for img_file in img_files:
   # <codecell>
 
   # Plot blurred 1d hough arrays and skeletonized versions
-  fig, ((ax1, ax2), 
-        (ax3, ax4)) = plt.subplots(2,2,sharex=True, sharey=True, figsize=(20,5))
-
-  ax1.plot(blur_x)
-  ax1.set_title('X blur')
-  ax2.plot(blur_y)
-  ax2.set_title('Y blur')
-  ax3.plot(skel_x)
-  ax3.set_title('X skeleton')
-  ax3.set_xlabel('Pixel')
-  ax4.plot(skel_y)
-  ax4.set_title('Y skeleton')
-  ax4.set_xlabel('Pixel')
-
-  for ax in [ax1,ax2,ax3,ax4]:
-      ax.axis('tight')
-
-  # Plot lines for where peaks where found
-  if len(lines_x < 15):
-      for hx in lines_x:
-          ax1.axvline(hx,color='r')
-  if len(lines_y < 15):
-      for hy in lines_y:
-          ax2.axvline(hy,color='r')
-
-  # <codecell>
-
-  plt.imshow(img)
-  for hx in lines_x:
-      plt.axvline(hx, color='b', lw=2)
-
-  for hy in lines_y:
-      plt.axhline(hy, color='r', lw=2)
-
   # <markdowncell>
 
   # Cool, we've got a set of lines now. We need to figure out which lines are associated with the chessboard, then split up the image into individual squares for feeding into the tensorflow CNN.
