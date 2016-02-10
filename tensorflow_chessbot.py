@@ -25,12 +25,10 @@ import numpy as np
 
 # Imports for visualization
 import PIL.Image
-from cStringIO import StringIO
-from IPython.display import clear_output, Image, display
-import scipy.ndimage as nd
 import scipy.signal
 import os
 import glob
+import matplotlib.pyplot as plt
 np.set_printoptions(suppress=True)
 
 # Start Tensorflow session
@@ -108,16 +106,16 @@ def skeletonize_1d(arr):
           _arr[i] = 0
   return _arr
 
+
+gausswin = scipy.signal.gaussian(21,2)
+gausswin /= np.sum(gausswin)
+
 def getChessLines(hdx, hdy, hdx_thresh, hdy_thresh):
   """Returns pixel indices for the 7 internal chess lines in x and y axes"""
-  # Blur
-  gausswin = scipy.signal.gaussian(21,5)
-  gausswin /= np.sum(gausswin)
 
   # Blur where there is a strong horizontal or vertical line (binarize)
-  blur_x = np.convolve(hdx > hdx_thresh, gausswin, mode='same')
-  blur_y = np.convolve(hdy > hdy_thresh, gausswin, mode='same')
-
+  blur_x = np.convolve((hdx > hdx_thresh)*1.0, gausswin, mode='same')
+  blur_y = np.convolve((hdy > hdy_thresh)*1.0, gausswin, mode='same')
 
   skel_x = skeletonize_1d(blur_x)
   skel_y = skeletonize_1d(blur_y)
@@ -137,6 +135,7 @@ def getChessLines(hdx, hdy, hdx_thresh, hdy_thresh):
 def getChessTiles(a, lines_x, lines_y):
   """Split up input grayscale array into 64 tiles stacked in a 3D matrix using the chess linesets"""
   # Find average square size, round to a whole pixel for determining edge pieces sizes
+
   stepx = np.int32(np.round(np.mean(np.diff(lines_x))))
   stepy = np.int32(np.round(np.mean(np.diff(lines_y))))
   
@@ -218,9 +217,22 @@ def loadImage(img_file):
   # Load image
   img = PIL.Image.open(img_file)
 
-  # Resize
-  img_size = 256
-  img = img.resize([img_size,img_size], PIL.Image.ADAPTIVE)
+  print "Loaded %s (%dpx x %dpx)" % \
+    (img_file, img.size[0], img.size[1])
+
+  # Resize if image larger than 2k pixels on a side
+  if img.size[0] > 2000 or img.size[1] > 2000:
+    print "Image too big (%d x %d)" % (img.size[0], img.size[1])
+    new_size = 500.0 # px
+    if img.size[0] > img.size[1]:
+      # resize by width to new limit
+      ratio = new_size / img.size[0]
+    else:
+      # resize by height
+      ratio = new_size / img.size[1]
+    print "Reducing by factor of %.2g" % (1./ratio)
+    img = img.resize(img.size * ratio, PIL.Image.ADAPTIVE)
+    print "New size: (%d x %d)" % (img.size[0], img.size[1])
 
   # Convert to grayscale and return as an numpy array
   return np.asarray(img.convert("L"), dtype=np.float32)
@@ -249,8 +261,8 @@ def getTiles(img_arr):
   hough_Dy = tf.reduce_sum(Dy_pos, 1) * tf.reduce_sum(-Dy_neg, 1) / (img_arr.shape[1]*img_arr.shape[1])
 
   # Arbitrarily choose half of max value as threshold, since they're such strong responses
-  hough_Dx_thresh = tf.reduce_max(hough_Dx)/2
-  hough_Dy_thresh = tf.reduce_max(hough_Dy)/2
+  hough_Dx_thresh = tf.reduce_max(hough_Dx)/2.0
+  hough_Dy_thresh = tf.reduce_max(hough_Dy)/2.0
 
   # Transition from TensorFlow to normal values (todo, do TF right) 
 
@@ -264,7 +276,7 @@ def getTiles(img_arr):
   if is_match:
     return getChessTiles(img_arr, lines_x, lines_y)
   else:
-    print "No match:", lines_x, lines_y
+    print "\tNo Match, lines found (dx/dy):", lines_x, lines_y
     return [] # No match, no tiles
 
 def saveTiles(tiles, img_save_dir):
@@ -284,28 +296,45 @@ def saveTiles(tiles, img_save_dir):
 ###########################################################
 # START MAIN PROG
 
-# Get all image files
-glob.glob("*.png")
-img_files = set(glob.glob("*.png")).union(set(glob.glob("*.jpg"))).union(set(glob.glob("*.gif")))
+# Directory structure
+input_chessboard_folder = 'input_chessboards'
+output_tile_folder = 'output_tiles'
+# Create output folder as needed
+if not os.path.exists(output_tile_folder):
+  os.makedirs(output_tile_folder)
 
-for img_file in img_files:
+# Get all image files
+img_files = set(glob.glob("%s/*.png" % input_chessboard_folder))\
+  .union(set(glob.glob("%s/*.jpg" % input_chessboard_folder)))\
+  .union(set(glob.glob("%s/*.gif" % input_chessboard_folder)))
+
+# print "Found", img_files
+
+for img_path in img_files:
+  # Strip to just filename
+  img_file = img_path[len(input_chessboard_folder)+1:-4]
+
   # Create output save directory or skip this image if it exists
-  img_save_dir = "squares_%s" % img_file[:-4]
+  img_save_dir = "%s/tiles_%s" % (output_tile_folder, img_file)
   
   if os.path.exists(img_save_dir):
     print "Skipping existing '%s'..." % (img_save_dir)
     continue
   
   # Load image
-  print "Loading %s..." % img_file
-  img_arr = loadImage(img_file)
+  print "---"
+  print "Loading %s..." % img_path
+  img_arr = loadImage(img_path)
 
   # Get tiles
   print "\tGenerating tiles for %s..." % img_file
   tiles = getTiles(img_arr)
 
   # Save tiles
-  if tiles is not None:
+  if len(tiles) > 0:
     print "\tSaving tiles %s" % img_file
     saveTiles(tiles, img_save_dir)
+  else:
+    print "\tNo Match, skipping"
+
   print "---"
