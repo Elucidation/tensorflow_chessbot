@@ -107,7 +107,7 @@ def skeletonize_1d(arr):
   return _arr
 
 
-gausswin = scipy.signal.gaussian(21,2)
+gausswin = scipy.signal.gaussian(21,4)
 gausswin /= np.sum(gausswin)
 
 def getChessLines(hdx, hdy, hdx_thresh, hdy_thresh):
@@ -260,9 +260,9 @@ def getTiles(img_arr):
   hough_Dx = tf.reduce_sum(Dx_pos, 0) * tf.reduce_sum(-Dx_neg, 0) / (img_arr.shape[0]*img_arr.shape[0])
   hough_Dy = tf.reduce_sum(Dy_pos, 1) * tf.reduce_sum(-Dy_neg, 1) / (img_arr.shape[1]*img_arr.shape[1])
 
-  # Arbitrarily choose half of max value as threshold, since they're such strong responses
-  hough_Dx_thresh = tf.reduce_max(hough_Dx)/2.0
-  hough_Dy_thresh = tf.reduce_max(hough_Dy)/2.0
+  # Slightly closer to 3/5 threshold, since they're such strong responses
+  hough_Dx_thresh = tf.reduce_max(hough_Dx) * 3/5
+  hough_Dy_thresh = tf.reduce_max(hough_Dy) * 3/5
 
   # Transition from TensorFlow to normal values (todo, do TF right) 
 
@@ -279,13 +279,13 @@ def getTiles(img_arr):
     print "\tNo Match, lines found (dx/dy):", lines_x, lines_y
     return [] # No match, no tiles
 
-def saveTiles(tiles, img_save_dir):
+def saveTiles(tiles, img_save_dir, img_file):
   letters = 'ABCDEFGH'
   if not os.path.exists(img_save_dir):
     os.makedirs(img_save_dir)
   
   for i in range(64):
-    sqr_filename = "%s/%s_%s%d.png" % (img_save_dir, img_file[:-4], letters[i%8], i/8+1)
+    sqr_filename = "%s/%s_%s%d.png" % (img_save_dir, img_file, letters[i%8], i/8+1)
     
     # Make resized 32x32 image from matrix and save
     PIL.Image.fromarray(tiles[:,:,i]) \
@@ -297,8 +297,10 @@ def saveTiles(tiles, img_save_dir):
 # START MAIN PROG
 
 # Directory structure
-input_chessboard_folder = 'input_chessboards'
-output_tile_folder = 'output_tiles'
+input_type = 'test'
+input_chessboard_folder = '%s_chessboards' % input_type
+output_tile_folder = '%s_tiles' % input_type
+
 # Create output folder as needed
 if not os.path.exists(output_tile_folder):
   os.makedirs(output_tile_folder)
@@ -333,7 +335,7 @@ for img_path in img_files:
   # Save tiles
   if len(tiles) > 0:
     print "\tSaving tiles %s" % img_file
-    saveTiles(tiles, img_save_dir)
+    saveTiles(tiles, img_save_dir, img_file)
   else:
     print "\tNo Match, skipping"
 
