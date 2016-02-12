@@ -11,12 +11,45 @@ import scipy.signal
 
 def display_array(a, fmt='jpeg', rng=[0,1]):
   """Display an array as a picture."""
-  a = (a - rng[0])/float(rng[1] - rng[0])*255
-  a = np.uint8(np.clip(a, 0, 255))
+  a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value
+  a = np.uint8(np.clip(a*255, 0, 255))
   f = StringIO()
-  PIL.Image.fromarray(a).save(f, fmt)
+
+  PIL.Image.fromarray(np.asarray(a, dtype=np.uint8)).save(f, fmt)
   display(Image(data=f.getvalue()))
+
+def display_weight(a, fmt='jpeg', rng=[0,1]):
+  """Display an array as a color picture."""
+  a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value
+  a = np.uint8(np.clip(a*255, 0, 255))
+  f = StringIO()
+
+  v = np.asarray(a, dtype=np.uint8)
+
+  # blue is high intensity, red is low
+  # Negative
+  r = 255-v.copy()
+  r[r<127] = 0
+  r[r>=127] = 255
   
+  # None
+  g = np.zeros_like(v)
+  
+  # Positive
+  b = v.copy()
+  b[b<127] = 0
+  b[b>=127] = 255
+  
+  #np.clip((v-127)/2,0,127)*2
+
+  #-1 to 1
+  intensity = np.abs(2.*a-1)
+
+  rgb = np.uint8(np.dstack([r,g,b]*intensity))
+
+  PIL.Image.fromarray(rgb).save(f, fmt)
+  display(Image(data=f.getvalue(), width=50))
+
 def loadImages(image_filepaths):
   # Each tile is a 32x32 grayscale image, add extra axis for working with MNIST Data format
   training_data = np.zeros([image_filepaths.size, 32, 32, 1], dtype=np.uint8)
