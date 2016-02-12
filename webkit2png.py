@@ -123,16 +123,16 @@ class WebkitRenderer(QObject):
 
 ## @brief The CookieJar class inherits QNetworkCookieJar to make a couple of functions public.
 class CookieJar(QNetworkCookieJar):
-	def __init__(self, cookies, qtUrl, parent=None):
-		QNetworkCookieJar.__init__(self, parent)
-		for cookie in cookies:
-			QNetworkCookieJar.setCookiesFromUrl(self, QNetworkCookie.parseCookies(QByteArray(cookie)), qtUrl)
+    def __init__(self, cookies, qtUrl, parent=None):
+        QNetworkCookieJar.__init__(self, parent)
+        for cookie in cookies:
+            QNetworkCookieJar.setCookiesFromUrl(self, QNetworkCookie.parseCookies(QByteArray(cookie)), qtUrl)
 
-	def allCookies(self):
-		return QNetworkCookieJar.allCookies(self)
-	
-	def setAllCookies(self, cookieList):
-		QNetworkCookieJar.setAllCookies(self, cookieList)
+    def allCookies(self):
+        return QNetworkCookieJar.allCookies(self)
+    
+    def setAllCookies(self, cookieList):
+        QNetworkCookieJar.setAllCookies(self, cookieList)
 
 class _WebkitRendererHelper(QObject):
     """
@@ -366,9 +366,9 @@ class _WebkitRendererHelper(QObject):
 
 class CustomWebPage(QWebPage):
     def __init__(self, **kwargs):
-    	"""
-    	Class Initializer
-    	"""
+        """
+        Class Initializer
+        """
         super(CustomWebPage, self).__init__()
         self.logger = kwargs.get('logger', None)
         self.ignore_alert = kwargs.get('ignore_alert', True)

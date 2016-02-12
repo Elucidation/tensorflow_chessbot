@@ -295,7 +295,7 @@ def saveTiles(tiles, img_save_dir, img_file):
 def generateTileset(input_chessboard_folder, output_tile_folder):
   # Create output folder as needed
   if not os.path.exists(output_tile_folder):
-    os.makeoutput_tile_folders(dir)
+    os.makedirs(output_tile_folder)
 
   # Get all image files of type png/jpg/gif
   img_files = set(glob.glob("%s/*.png" % input_chessboard_folder))\

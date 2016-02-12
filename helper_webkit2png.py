@@ -43,10 +43,13 @@ class ChessScreenshotServer():
   def renderScreenshotToFile(self):
     """This is run within QT"""
     try:
-      self.renderer = webkit2png.WebkitRenderer()
-      self.renderer.qWebSettings[QWebSettings.JavascriptEnabled] = True # Enable javascript
+      renderer = webkit2png.WebkitRenderer()
+      # renderer.wait = 5
+      renderer.qWebSettings[QWebSettings.JavascriptEnabled] = True # Enable javascript
+      if self.options.cookie:
+        renderer.cookies = [self.options.cookie]
       with open(self.options.output_filename, 'w') as f:
-        self.renderer.render_to_file(res=self.options.url, file_object=f)
+        renderer.render_to_file(res=self.options.url, file_object=f)
         print "\tSaved screenshot to '%s'" % f.name
       QApplication.exit(0)
     except RuntimeError, e:
@@ -65,9 +68,9 @@ class ChessScreenshotServer():
     return self.app.exec_()
 
   def takeChessScreenshot(self, fen_string=None, output_filename=None, 
-                          cookie=None):
+                          cookie=None): 
     """Take uncropped screenshot of lichess board of FEN string and save to file"""
+    url_template = "http://en.lichess.org/editor/%s"
     if cookie:
       self.options.cookie = cookie
-    url_template = "http://en.lichess.org/editor/%s"
     return self.takeScreenshot(url_template % fen_string, output_filename)
