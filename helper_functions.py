@@ -2,12 +2,19 @@ import tensorflow as tf
 import numpy as np
 import PIL.Image
 import glob
+import os
+
 # Imports for visualization
 import PIL.Image
 from cStringIO import StringIO
 from IPython.display import clear_output, Image, display
 import scipy.ndimage as nd
 import scipy.signal
+
+def createDir(dir):
+  if not os.path.exists(dir):
+    os.makedirs(dir)
+  return
 
 def display_array(a, fmt='jpeg', rng=[0,1]):
   """Display an array as a picture."""

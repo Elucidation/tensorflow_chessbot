@@ -22,6 +22,7 @@
 
 import tensorflow as tf
 import numpy as np
+import helper_functions as hf
 
 # Imports for visualization
 import PIL.Image
@@ -217,8 +218,8 @@ def loadImage(img_file):
   # Load image
   img = PIL.Image.open(img_file)
 
-  print "Loaded %s (%dpx x %dpx)" % \
-    (img_file, img.size[0], img.size[1])
+  # print "Loaded %s (%dpx x %dpx)" % \
+  #   (img_file, img.size[0], img.size[1])
 
   # Resize if image larger than 2k pixels on a side
   if img.size[0] > 2000 or img.size[1] > 2000:
@@ -292,51 +293,60 @@ def saveTiles(tiles, img_save_dir, img_file):
         .resize([32,32], PIL.Image.ADAPTIVE) \
         .save(sqr_filename)
 
+def generateTileset(input_chessboard_folder, output_tile_folder):
+  # Create output folder as needed
+  hf.createDir(output_tile_folder)
+
+  # Get all image files of type png/jpg/gif
+  img_files = set(glob.glob("%s/*.png" % input_chessboard_folder))\
+    .union(set(glob.glob("%s/*.jpg" % input_chessboard_folder)))\
+    .union(set(glob.glob("%s/*.gif" % input_chessboard_folder)))
+
+  num_success = 0
+  num_failed = 0
+  num_skipped = 0
+
+  for i, img_path in enumerate(img_files):
+    print "#% 3d/%d : %s" % (i+1, len(img_files), img_path)
+    # Strip to just filename
+    img_file = img_path[len(input_chessboard_folder)+1:-4]
+
+    # Create output save directory or skip this image if it exists
+    img_save_dir = "%s/tiles_%s" % (output_tile_folder, img_file)
+    
+    if os.path.exists(img_save_dir):
+      print "\tSkipping existing"
+      num_skipped += 1
+      continue
+    
+    # Load image
+    print "---"
+    print "Loading %s..." % img_path
+    img_arr = loadImage(img_path)
+
+    # Get tiles
+    print "\tGenerating tiles for %s..." % img_file
+    tiles = getTiles(img_arr)
+
+    # Save tiles
+    if len(tiles) > 0:
+      print "\tSaving tiles %s" % img_file
+      saveTiles(tiles, img_save_dir, img_file)
+      num_success += 1
+    else:
+      print "\tNo Match, skipping"
+      num_failed += 1
+
+  print "\t%d/%d generated, %d failures, %d skipped." % (num_success,
+    len(img_files) - num_skipped, num_failed, num_skipped)
 
 ###########################################################
-# START MAIN PROG
+# MAIN
 
-# Directory structure
-input_type = 'test'
-input_chessboard_folder = '%s_chessboards' % input_type
-output_tile_folder = '%s_tiles' % input_type
+if __name__ == '__main__':
+  # Directory structure
+  input_type = 'test'
+  input_chessboard_folder = '%s_chessboards' % input_type
+  output_tile_folder = '%s_tiles' % input_type
 
-# Create output folder as needed
-if not os.path.exists(output_tile_folder):
-  os.makedirs(output_tile_folder)
-
-# Get all image files
-img_files = set(glob.glob("%s/*.png" % input_chessboard_folder))\
-  .union(set(glob.glob("%s/*.jpg" % input_chessboard_folder)))\
-  .union(set(glob.glob("%s/*.gif" % input_chessboard_folder)))
-
-# print "Found", img_files
-
-for img_path in img_files:
-  # Strip to just filename
-  img_file = img_path[len(input_chessboard_folder)+1:-4]
-
-  # Create output save directory or skip this image if it exists
-  img_save_dir = "%s/tiles_%s" % (output_tile_folder, img_file)
-  
-  if os.path.exists(img_save_dir):
-    print "Skipping existing '%s'..." % (img_save_dir)
-    continue
-  
-  # Load image
-  print "---"
-  print "Loading %s..." % img_path
-  img_arr = loadImage(img_path)
-
-  # Get tiles
-  print "\tGenerating tiles for %s..." % img_file
-  tiles = getTiles(img_arr)
-
-  # Save tiles
-  if len(tiles) > 0:
-    print "\tSaving tiles %s" % img_file
-    saveTiles(tiles, img_save_dir, img_file)
-  else:
-    print "\tNo Match, skipping"
-
-  print "---"
+  generateTileset(input_chessboard_folder, output_tile_folder)
