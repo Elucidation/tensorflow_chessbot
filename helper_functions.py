@@ -11,11 +11,6 @@ from IPython.display import clear_output, Image, display
 import scipy.ndimage as nd
 import scipy.signal
 
-def createDir(dir):
-  if not os.path.exists(dir):
-    os.makedirs(dir)
-  return
-
 def display_array(a, fmt='jpeg', rng=[0,1]):
   """Display an array as a picture."""
   a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value

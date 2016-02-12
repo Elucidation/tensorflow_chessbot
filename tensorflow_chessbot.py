@@ -22,7 +22,6 @@
 
 import tensorflow as tf
 import numpy as np
-import helper_functions as hf
 
 # Imports for visualization
 import PIL.Image
@@ -295,7 +294,8 @@ def saveTiles(tiles, img_save_dir, img_file):
 
 def generateTileset(input_chessboard_folder, output_tile_folder):
   # Create output folder as needed
-  hf.createDir(output_tile_folder)
+  if not os.path.exists(output_tile_folder):
+    os.makeoutput_tile_folders(dir)
 
   # Get all image files of type png/jpg/gif
   img_files = set(glob.glob("%s/*.png" % input_chessboard_folder))\
