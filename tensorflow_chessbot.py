@@ -164,7 +164,10 @@ def getChessTiles(a, lines_x, lines_y):
   setsx -= setsx[0]
   setsy -= setsy[0]
 
-  squares = np.zeros([np.round(stepy), np.round(stepx), 64],dtype=np.uint8)
+  # Tiles will contain 32x32x64 values corresponding to 64 chess tile images
+  # A resize is needed to do this
+  # tiles = np.zeros([np.round(stepy), np.round(stepx), 64],dtype=np.uint8)
+  tiles = np.zeros([32, 32, 64],dtype=np.uint8)
   
   # For each row
   for i in range(0,8):
@@ -209,8 +212,12 @@ def getChessTiles(a, lines_x, lines_y):
       # slicing a, rows sliced with horizontal lines, cols by vertical lines so reversed
       # Also, change order so its A1,B1...H8 for a white-aligned board
       # Apply padding as defined previously to fit minor pixel offsets
-      squares[:,:,(7-j)*8+i] = np.pad(a2[y1:y2, x1:x2],((padl_y,padr_y),(padl_x,padr_x)), mode='edge')
-  return squares
+      # tiles[:,:,(7-j)*8+i] = np.pad(a2[y1:y2, x1:x2],((padl_y,padr_y),(padl_x,padr_x)), mode='edge')
+      full_size_tile = np.pad(a2[y1:y2, x1:x2],((padl_y,padr_y),(padl_x,padr_x)), mode='edge')
+      tiles[:,:,(7-j)*8+i] = np.asarray( \
+        PIL.Image.fromarray(full_size_tile) \
+        .resize([32,32], PIL.Image.ADAPTIVE), dtype=np.uint8)
+  return tiles
 
 
 def loadImage(img_file):
@@ -288,9 +295,13 @@ def saveTiles(tiles, img_save_dir, img_file):
     sqr_filename = "%s/%s_%s%d.png" % (img_save_dir, img_file, letters[i%8], i/8+1)
     
     # Make resized 32x32 image from matrix and save
-    PIL.Image.fromarray(tiles[:,:,i]) \
-        .resize([32,32], PIL.Image.ADAPTIVE) \
-        .save(sqr_filename)
+    if tiles.shape != (32,32,64):
+      PIL.Image.fromarray(tiles[:,:,i]) \
+          .resize([32,32], PIL.Image.ADAPTIVE) \
+          .save(sqr_filename)
+    else:
+      PIL.Image.fromarray(tiles[:,:,i]) \
+          .save(sqr_filename)
 
 def generateTileset(input_chessboard_folder, output_tile_folder):
   # Create output folder as needed
