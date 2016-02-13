@@ -50,7 +50,44 @@ def display_weight(a, fmt='jpeg', rng=[0,1]):
   rgb = np.uint8(np.dstack([r,g,b]*intensity))
 
   PIL.Image.fromarray(rgb).save(f, fmt)
-  display(Image(data=f.getvalue(), width=50))
+  display(Image(data=f.getvalue(), width=100))
+
+def loadFENtiles(image_filepaths):
+  """Load Tiles with FEN string in filename for labels.
+  return both images and labels"""
+  # Each tile is a 32x32 grayscale image, add extra axis for working with MNIST Data format
+  images = np.zeros([image_filepaths.size, 32, 32, 1], dtype=np.uint8)
+  labels = np.zeros([image_filepaths.size, 13], dtype=np.float64)
+
+  for i, image_filepath in enumerate(image_filepaths):
+    if i % 1000 == 0:
+      print "On #%d/%d : %s" % (i,image_filepaths.size, image_filepath)
+    
+    # Image
+    images[i,:,:,0] = np.asarray(PIL.Image.open(image_filepath), dtype=np.uint8)
+
+    # Label
+    fen = image_filepath[-78:-7]
+    _rank = image_filepath[-6]
+    _file = int(image_filepath[-5])
+    labels[i,:] = getFENtileLabel(fen, _rank, _file)
+
+  return images, labels
+
+def getFENtileLabel(fen,letter,number):
+  """Given a fen string and a rank (number) and file (letter), return label vector"""
+  l2i = lambda l:  ord(l)-ord('A') # letter to index
+  number = 8-number # FEN has order backwards
+  piece_letter = fen[number*8+number + l2i(letter)]
+  label = np.zeros(13, dtype=np.uint8)
+  label['1KQRBNPkqrbnp'.find(piece_letter)] = 1 # note the 1 instead of ' ' due to FEN notation
+  # We ignore shorter FENs with numbers > 1 because we generate the FENs ourselves
+  return label
+
+def getFENtileLetter(fen,letter,number):
+  """Given a fen string and a rank (number) and file (letter), return piece letter"""
+  piece_letter = fen[(8-number)*8+(8-number) + l2i(letter)]
+  return ' KQRBNPkqrbnp'.find(piece_letter)
 
 def loadImages(image_filepaths):
   # Each tile is a 32x32 grayscale image, add extra axis for working with MNIST Data format
