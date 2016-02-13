@@ -167,7 +167,7 @@ def getChessTiles(a, lines_x, lines_y):
   # Tiles will contain 32x32x64 values corresponding to 64 chess tile images
   # A resize is needed to do this
   # tiles = np.zeros([np.round(stepy), np.round(stepx), 64],dtype=np.uint8)
-  tiles = np.zeros([32, 32, 64],dtype=np.uint8)
+  tiles = np.zeros([32, 32, 64],dtype=np.float32)
   
   # For each row
   for i in range(0,8):
@@ -216,18 +216,26 @@ def getChessTiles(a, lines_x, lines_y):
       full_size_tile = np.pad(a2[y1:y2, x1:x2],((padl_y,padr_y),(padl_x,padr_x)), mode='edge')
       tiles[:,:,(7-j)*8+i] = np.asarray( \
         PIL.Image.fromarray(full_size_tile) \
-        .resize([32,32], PIL.Image.ADAPTIVE), dtype=np.uint8)
+        .resize([32,32], PIL.Image.BILINEAR), dtype=np.float32) / 255.0
+        #PIL.Image.ADAPTIVE causes image artifacts
   return tiles
 
 
 def loadImage(img_file):
-  # Load image
+  """Load image from file, convert to grayscale float32 numpy array"""
   img = PIL.Image.open(img_file)
+  img = resizeAsNeeded(img)
 
-  # print "Loaded %s (%dpx x %dpx)" % \
-  #   (img_file, img.size[0], img.size[1])
+  # Convert to grayscale and return as an numpy array
+  return np.asarray(img.convert("L"), dtype=np.float32)
 
-  # Resize if image larger than 2k pixels on a side
+def loadImageFromURL(img_url):
+  """Load PIL image from URL, keep as color"""
+  img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(img_url).read()))
+  return resizeAsNeeded(img)
+
+def resizeAsNeeded(img):
+  """Resize if image larger than 2k pixels on a side"""
   if img.size[0] > 2000 or img.size[1] > 2000:
     print "Image too big (%d x %d)" % (img.size[0], img.size[1])
     new_size = 500.0 # px
@@ -240,10 +248,7 @@ def loadImage(img_file):
     print "Reducing by factor of %.2g" % (1./ratio)
     img = img.resize(img.size * ratio, PIL.Image.ADAPTIVE)
     print "New size: (%d x %d)" % (img.size[0], img.size[1])
-
-  # Convert to grayscale and return as an numpy array
-  return np.asarray(img.convert("L"), dtype=np.float32)
-
+  return img
 
 def getTiles(img_arr):
   """Find and slice 64 chess tiles from image in 3D Matrix"""
@@ -300,6 +305,7 @@ def saveTiles(tiles, img_save_dir, img_file):
           .resize([32,32], PIL.Image.ADAPTIVE) \
           .save(sqr_filename)
     else:
+      # Possibly saving floats 0-1 needs to change fromarray settings
       PIL.Image.fromarray(tiles[:,:,i]) \
           .save(sqr_filename)
 

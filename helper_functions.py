@@ -52,6 +52,13 @@ def display_weight(a, fmt='jpeg', rng=[0,1]):
   PIL.Image.fromarray(rgb).save(f, fmt)
   display(Image(data=f.getvalue(), width=100))
 
+def display_image(a, fmt='png'):
+  """Display an image as a picture in-line."""
+  f = StringIO()
+
+  PIL.Image.fromarray(np.asarray(a, dtype=np.uint8)).save(f, fmt)
+  display(Image(data=f.getvalue()))
+
 def loadFENtiles(image_filepaths):
   """Load Tiles with FEN string in filename for labels.
   return both images and labels"""
