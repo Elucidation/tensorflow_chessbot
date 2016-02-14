@@ -22,17 +22,15 @@
 
 import tensorflow as tf
 import numpy as np
-
-# Imports for visualization
-import PIL.Image
-import scipy.signal
 import os
 import glob
-import matplotlib.pyplot as plt
-np.set_printoptions(suppress=True)
 
-# Start Tensorflow session
-sess = tf.InteractiveSession()
+# Imports for computer vision
+import PIL.Image
+import scipy.signal
+import urllib, cStringIO
+
+import helper_functions
 
 def make_kernel(a):
   """Transform a 2D array into a convolution kernel"""
@@ -279,22 +277,22 @@ def getTiles(img_arr):
   
   # Initialize A with image array input
   # tf.initialize_all_variables().run() # will reset CNN weights so be selective
-  tf.initialize_variables([A], name='getTiles_init').run()
+
+  # Local tf session
+  sess = tf.Session()
+  sess.run(tf.initialize_variables([A], name='getTiles_init'))
 
   # Get chess lines (try a fiew sets)
-  lines_x, lines_y, is_match = getChessLines(hough_Dx.eval().flatten(), \
-                                             hough_Dy.eval().flatten(), \
-                                             hough_Dx_thresh.eval(), \
-                                             hough_Dy_thresh.eval())
+  hdx, hdy, hdx_thresh, hdy_thresh = sess.run(
+    [hough_Dx, hough_Dy, hough_Dx_thresh, hough_Dy_thresh])
+  lines_x, lines_y, is_match = getChessLines(hdx, hdy, hdx_thresh, hdy_thresh)
   for percentage in np.array([0.9, 0.8, 0.7, 0.6]):
     if is_match:
       break
     else:
       print "Trying %d%% of threshold" % (100*percentage)
-      lines_x, lines_y, is_match = getChessLines(hough_Dx.eval().flatten(), \
-                                                 hough_Dy.eval().flatten(), \
-                                                 hough_Dx_thresh.eval() * percentage, \
-                                                 hough_Dy_thresh.eval() * percentage)
+      lines_x, lines_y, is_match = getChessLines(hdx, hdy, 
+        hdx_thresh * percentage, hdy_thresh * percentage)
 
   # Get the tileset
   if is_match:
@@ -369,13 +367,182 @@ def generateTileset(input_chessboard_folder, output_tile_folder):
   print "\t%d/%d generated, %d failures, %d skipped." % (num_success,
     len(img_files) - num_skipped, num_failed, num_skipped)
 
+class ChessboardPredictor(object):
+  """ChessboardPredictor using saved model"""
+  def __init__(self, model_path='saved_models/model_10000.ckpt'):
+
+    print "Setting up CNN TensorFlow graph..."
+    def weight_variable(shape, name=""):
+        initial = tf.truncated_normal(shape, stddev=0.1)
+        return tf.Variable(initial, name)
+
+    def bias_variable(shape, name=""):
+        initial = tf.constant(0.1, shape=shape)
+        return tf.Variable(initial, name)
+
+    def conv2d(x, W):
+        return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
+
+    def max_pool_2x2(x, name=""):
+        return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
+                            strides=[1, 2, 2, 1], padding='SAME', name=name)
+
+    self.x = tf.placeholder(tf.float32, [None, 32*32])
+
+    # First layer : 32 features
+    W_conv1 = weight_variable([5, 5, 1, 32], name='W1')
+    b_conv1 = bias_variable([32], name='B1')
+
+    x_image = tf.reshape(self.x, [-1,32,32,1])
+
+    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1, name='Conv1')
+    h_pool1 = max_pool_2x2(h_conv1, name='Pool1')
+
+    # Second convolutional layer : 64 features
+    W_conv2 = weight_variable([5, 5, 32, 64], name='W2')
+    b_conv2 = bias_variable([64], name='B2')
+
+    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2, name='Conv2')
+    h_pool2 = max_pool_2x2(h_conv2, name='Pool2')
+
+    # Densely connected layer : 1024 neurons, image size now 8x8
+    W_fc1 = weight_variable([8 * 8 * 64, 1024], name='W3')
+    b_fc1 = bias_variable([1024], name='B3')
+
+    h_pool2_flat = tf.reshape(h_pool2, [-1, 8*8*64], name='Pool3')
+    h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1, 'MatMult3')
+
+    # Dropout
+    self.keep_prob = tf.placeholder("float", name='KeepProb')
+    h_fc1_drop = tf.nn.dropout(h_fc1, self.keep_prob, name='Drop4')
+
+    # Readout layer : softmax, 13 features
+    W_fc2 = weight_variable([1024, 13], name='W5')
+    b_fc2 = bias_variable([13], name='B5')
+
+    self.y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2, name='Ypredict')
+
+    # # Old single layer regression classifier
+    # W = tf.Variable(tf.zeros([32*32, 13]))
+    # b = tf.Variable(tf.zeros([13]))
+    # y = tf.nn.softmax(tf.matmul(x, W) + b)
+
+    # Ground truth labels if exist 
+    y_ = tf.placeholder(tf.float32, [None, 13], name='Ytruth')
+
+    cross_entropy = -tf.reduce_sum(y_*tf.log(self.y_conv), name='CrossEntropy')
+
+    # train_step = tf.train.GradientDescentOptimizer(0.001).minimize(cross_entropy)
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+
+    correct_prediction = tf.equal(tf.argmax(self.y_conv,1), tf.argmax(y_,1), name='CorrectPrediction')
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"), name='Accuracy')
+
+    # Add ops to save and restore all the variables.
+    saver = tf.train.Saver()
+
+    # Start Interactive session for rest of notebook (else we'd want to close session)
+    self.sess = tf.Session()
+
+    # Restore model from checkpoint
+    print "Loading model '%s'" % model_path
+    saver.restore(self.sess, model_path)
+    print "Model restored."
+
+  def getPrediction(self,img):
+    """Run trained neural network on tiles generated from image"""
+    
+    # Convert to grayscale numpy array
+    img_arr = np.asarray(img.convert("L"), dtype=np.float32)
+    
+    # Use computer vision to get the tiles
+    tiles = getTiles(img_arr)
+    if tiles is None or len(tiles) == 0:
+      print "Couldn't parse chessboard"
+      return None, 0.0
+    
+    # Reshape into Nx1024 rows of input data, format used by neural network
+    validation_set = np.swapaxes(np.reshape(tiles, [32*32, 64]),0,1)
+
+    # Run neural network on data
+    guess_prob, guessed = self.sess.run([self.y_conv, tf.argmax(self.y_conv,1)], feed_dict={self.x: validation_set, self.keep_prob: 1.0})
+    
+    # Prediction bounds
+    a = np.array(map(lambda x: x[0][x[1]], zip(guess_prob, guessed)))
+    print "Certainty range [%g - %g], Avg: %g, Overall: %g" % (a.min(), a.max(), a.mean(), a.prod())
+    
+    # Convert guess into FEN string
+    # guessed is tiles A1-H8 rank-order, so to make a FEN we just need to flip the files from 1-8 to 8-1
+    pieceNames = map(lambda k: '1' if k == 0 else helper_functions.labelIndex2Name(k), guessed) # exchange ' ' for '1' for FEN
+    fen = '/'.join([''.join(pieceNames[i*8:(i+1)*8]) for i in reversed(range(8))])
+    return fen, a.prod()
+
+  #########################################################
+  # CNN Prediction Wrapper
+
+  def makePrediction(self,image_url):
+    """Return FEN prediction, FEN image link and certainty for a URL"""
+    # Try to load image url
+    img = loadImageURL(image_url)
+
+    if img == None:
+      print "Couldn't load image url: %s" % image_url
+      return None, None, 0.0
+    
+    # Make prediction
+    fen, certainty = self.getPrediction(img)
+    if fen:
+      # lichess_analysis_link = 'http://www.lichess.org/analysis/%s' % helper_functions.shortenFEN(fen)
+      fen_img_link = 'http://www.fen-to-image.com/image/30/%s' % fen
+      fen = helper_functions.shortenFEN(fen)
+      return fen, fen_img_link, certainty
+    else:
+      return None, None, 0.0
+
+def loadImageURL(image_url):
+  """Load image from url.
+  try different ending variations if original url doesn't work"""
+  success = False
+  try:
+    img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url).read()))
+  except IOError, e:
+    pass
+  if not success:
+    try:
+      img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url+'.png').read()))
+      success = True
+    except IOError, e:
+      pass
+  if not success:
+    try:
+      img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url+'.jpg').read()))
+      success = True
+    except IOError, e:
+      pass
+  if not success:
+    try:
+      img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url+'.gif').read()))
+      success = True
+    except IOError, e:
+      pass
+  
+  if success:
+    return img
+  else:
+    return None
+
 ###########################################################
 # MAIN
 
 if __name__ == '__main__':
   # Directory structure
-  input_type = 'test'
-  input_chessboard_folder = '%s_chessboards' % input_type
-  output_tile_folder = '%s_tiles' % input_type
+  # input_type = 'test'
+  # input_chessboard_folder = '%s_chessboards' % input_type
+  # output_tile_folder = '%s_tiles' % input_type
 
-  generateTileset(input_chessboard_folder, output_tile_folder)
+  # generateTileset(input_chessboard_folder, output_tile_folder)
+  predictor = ChessboardPredictor()
+
+  print predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
+
+  print "Done"
