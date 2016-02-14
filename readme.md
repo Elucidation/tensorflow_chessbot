@@ -7,7 +7,8 @@ There are three ipython notebooks which show the workflow from turning a screens
 
 1. [tensorflow_chessbot.ipynb](tensorflow_chessbot.ipynb) - Computer Vision
 1. [tensorflow_generate_training_data.ipynb](tensorflow_generate_training_data.ipynb) - Generating a dataset from set of screenshots of chessboards in known configurations
-1. [tensorflow_learn.ipynb](tensorflow_learn.ipynb) - **TensorFlow Neural Network Training & Prediction** (tensorflow_learn.ipynb)[tensorflow_learn.ipynb]
+1. [tensorflow_learn.ipynb](tensorflow_learn.ipynb) - **TensorFlow Neural Network Training & Prediction** Basic Regression classifier, works for more common lichess.org and chess.com screenshots
+1. [tensorflow_learn_cnn.ipynb](tensorflow_learn_cnn.ipynb) - **TensorFlow Convolutional Neural Network Training & Prediction** tested with ~73% success rate on 71 chess subreddit posts
 
 ### #1 [tensorflow_chessbot.ipynb](tensorflow_chessbot.ipynb) - Computer Vision
 
@@ -35,6 +36,32 @@ We train the neural network on generated data from 80 lichess.org screenshots, w
 Finally we can make predictions on images passed by URL, the ones from lichess and visually similar boards work well, the ones that are too different from what we trained for don't work, suggesting that getting more data is in order. Here is a prediction on the image for [this reddit post](https://www.reddit.com/r/chess/comments/45inab/moderate_black_to_play_and_win/)
 
 ![Prediction](readme_images/prediction.png)
+
+### #4 [tensorflow_learn_cnn.ipynb](tensorflow_learn_cnn.ipynb) - **TensorFlow Convolutional Neural Network Training & Prediction**
+
+Built a slightly larger dataset of ~150 screenshots which is around 9600 tiles which includes randomized FEN diagrams from lichess.org, chess.com, and 2 FEN generated diagram sites.
+
+Tested with ~73% success rate on 71 chess subreddit posts, good enough to make a first draft Reddit bot.
+
+## Reddit Bot Comment style
+
+Planning to have the bot reply to a comment with something like this:
+
+ChessFenBot [◕ ◡ ◕]<sup>\*</sup> *~Making FENs so you don't have to~*
+
+---
+<sup>Reply with a corrected FEN or [Editor link](http://test) to add to my next training dataset</sup>
+
+ I attempted to generate a chessboard layout from the posted image, with a certainty of 70.3%. *Eh, I liked my layout better anyway.*
+
+FEN: [rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR](http://www.gilith.com/chess/diagrams/images/rnbqkbnr_pppppppp_8_8_8_8_PPPPPPPP_RNBQKBNR.png)
+
+[Link to Lichess Analysis](http://thing) / [Editor](http://test)
+
+---
+
+<sup>Yes I am a machine learning bot | [`How I work`](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper') | CNN trained with 146 screenshots</sup>
+
 
 ### Ideation
 Reddit post has an image link (perhaps as well as a statement "white/black to play").
