@@ -306,7 +306,7 @@ def saveTiles(tiles, img_save_dir, img_file):
           .save(sqr_filename)
     else:
       # Possibly saving floats 0-1 needs to change fromarray settings
-      PIL.Image.fromarray(tiles[:,:,i]) \
+      PIL.Image.fromarray((tiles[:,:,i]*255).astype(np.uint8)) \
           .save(sqr_filename)
 
 def generateTileset(input_chessboard_folder, output_tile_folder):

@@ -68,7 +68,8 @@ def loadFENtiles(image_filepaths):
 
   for i, image_filepath in enumerate(image_filepaths):
     if i % 1000 == 0:
-      print "On #%d/%d : %s" % (i,image_filepaths.size, image_filepath)
+      #print "On #%d/%d : %s" % (i,image_filepaths.size, image_filepath)
+      print ".",
     
     # Image
     images[i,:,:,0] = np.asarray(PIL.Image.open(image_filepath), dtype=np.uint8)
@@ -78,7 +79,7 @@ def loadFENtiles(image_filepaths):
     _rank = image_filepath[-6]
     _file = int(image_filepath[-5])
     labels[i,:] = getFENtileLabel(fen, _rank, _file)
-
+  print "Done"
   return images, labels
 
 def getFENtileLabel(fen,letter,number):
