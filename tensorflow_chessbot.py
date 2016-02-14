@@ -255,12 +255,11 @@ def getTiles(img_arr):
   # Get our grayscale image matrix
   A = tf.Variable(img_arr)
 
+
   # X & Y gradients
   Dx = gradientx(A)
   Dy = gradienty(A)
 
-  # Initialize state to initial conditions
-  tf.initialize_all_variables().run()
 
   Dx_pos = tf.clip_by_value(Dx, 0., 255., name="dx_positive")
   Dx_neg = tf.clip_by_value(Dx, -255., 0., name='dx_negative')
@@ -277,12 +276,25 @@ def getTiles(img_arr):
   hough_Dy_thresh = tf.reduce_max(hough_Dy) * 3/5
 
   # Transition from TensorFlow to normal values (todo, do TF right) 
+  
+  # Initialize A with image array input
+  # tf.initialize_all_variables().run() # will reset CNN weights so be selective
+  tf.initialize_variables([A], name='getTiles_init').run()
 
-  # Get chess lines
+  # Get chess lines (try a fiew sets)
   lines_x, lines_y, is_match = getChessLines(hough_Dx.eval().flatten(), \
                                              hough_Dy.eval().flatten(), \
                                              hough_Dx_thresh.eval(), \
                                              hough_Dy_thresh.eval())
+  for percentage in np.array([0.9, 0.8, 0.7, 0.6]):
+    if is_match:
+      break
+    else:
+      print "Trying %d%% of threshold" % (100*percentage)
+      lines_x, lines_y, is_match = getChessLines(hough_Dx.eval().flatten(), \
+                                                 hough_Dy.eval().flatten(), \
+                                                 hough_Dx_thresh.eval() * percentage, \
+                                                 hough_Dy_thresh.eval() * percentage)
 
   # Get the tileset
   if is_match:
