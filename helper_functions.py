@@ -11,6 +11,12 @@ from IPython.display import clear_output, Image, display
 import scipy.ndimage as nd
 import scipy.signal
 
+def shortenFEN(fen):
+  """Reduce FEN to shortest form (ex. '111p11Q' becomes '3p2Q')"""
+  return fen.replace('11111111','8').replace('1111111','7') \
+            .replace('111111','6').replace('11111','5') \
+            .replace('1111','4').replace('111','3').replace('11','2')
+
 def display_array(a, fmt='jpeg', rng=[0,1]):
   """Display an array as a picture."""
   a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value

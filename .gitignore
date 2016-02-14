@@ -3,5 +3,6 @@
 *.png
 *.jpg
 *.gif
+saved_models/
 
 !readme_images/*
