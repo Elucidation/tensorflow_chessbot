@@ -481,7 +481,7 @@ class ChessboardPredictor(object):
   # CNN Prediction Wrapper
 
   def makePrediction(self,image_url):
-    """Return FEN prediction, FEN image link and certainty for a URL"""
+    """Return FEN prediction, and certainty for a URL"""
     # Try to load image url
     img = loadImageURL(image_url)
 
@@ -492,10 +492,8 @@ class ChessboardPredictor(object):
     # Make prediction
     fen, certainty = self.getPrediction(img)
     if fen:
-      # lichess_analysis_link = 'http://www.lichess.org/analysis/%s' % helper_functions.shortenFEN(fen)
-      fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
       fen = helper_functions.shortenFEN(fen)
-      return fen, fen_img_link, certainty
+      return fen, certainty
     else:
       return None, None, 0.0
 
@@ -536,7 +534,7 @@ def loadImageURL(image_url):
 
 if __name__ == '__main__':
   predictor = ChessboardPredictor()
-  fen, fen_img_link, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
+  fen, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
   print "Predicted FEN: %s" % fen
   print "Certainty: %.1f%%" % (certainty*100)
 

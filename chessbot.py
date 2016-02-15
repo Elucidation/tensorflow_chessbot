@@ -52,27 +52,44 @@ def isChessboardTopic(sub):
   return any([q in sub.title.lower() for q in ['white', 'black']]) \
          and sub.url != None and 'imgur' in sub.url
 
-def getResponseToChessboardTopic(title, fen, fen_img_link, certainty):
+def getResponseToChessboardTopic(title, fen, certainty):
   """Parse white/black to play from title, and use prediction results for output"""
   # Default white to play
   to_play = '_w'
   to_play_full = 'White'
-  if 'black to play' in title.lower() or ('black' in title.lower() and 'white' not in title.lower()):
+  lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (helper_functions.shortenFEN(fen), to_play)
+  fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
+
+  if isBlackToPlay(title):
     to_play = '_b'
     to_play_full = 'Black'
 
-  lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (helper_functions.shortenFEN(fen), to_play)
+    # Flip fen order for black to play, assumes screenshot is flipped
+    # fen = '/'.join((reversed(fen.split('/'))))
+    fen = ''.join(reversed(fen))
+    fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
+    lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (helper_functions.shortenFEN(fen), to_play)
+    # black_addendum = "\n\nReversed Fen + Lichess analysis link if board is flipped: [%s](%s)" % (helper_functions.shortenFEN(reverse_fen), reverse_lichess_analysis)
+
+
   msg = ("I attempted to generate a chessboard layout from the posted image, with an overall certainty of **%g%%**.\n\n"
          "FEN: [%s](%s)\n\n"
          "Here is a link to a [Lichess Analysis](%s) - %s to play"
          % (round(certainty*100, 4), fen, fen_img_link, lichess_analysis, to_play_full))
   return msg
 
+def isBlackToPlay(title):
+  """Based on post title return if it's black to play (default is white)"""
+  return 'black to play' in title.lower() or ('black' in title.lower() and 'white' not in title.lower())
+
 def getResponseHeader():
   return "ChessFenBot [◕ _ ◕]^*  ^(*I make FENs*)\n\n---\n\n"
 
-def getResponseFooter(fen):
-  lichess_editor = 'http://www.lichess.org/editor/%s' % helper_functions.shortenFEN(fen)
+def getResponseFooter(title, fen):
+  to_play = '_w'
+  if isBlackToPlay(title):
+    to_play = '_b'
+  lichess_editor = 'http://www.lichess.org/editor/%s%s' % (helper_functions.shortenFEN(fen), to_play)
   return ("\n\n---\n\n"
          "^(Yes I am a machine learning bot | )"
          "[^(`How I work`)](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')"
@@ -159,7 +176,7 @@ while running:
         
         # Use CNN to make a prediction
         print "Image URL: %s" % submission.url
-        fen, fen_img_link, certainty = predictor.makePrediction(submission.url)
+        fen, certainty = predictor.makePrediction(submission.url)
         print "Predicted FEN: %s" % fen
         print "Certainty: %.1f%%" % (certainty*100)
 
@@ -168,13 +185,13 @@ while running:
           addSubmissionToFailures(submission)
           continue
         else:
-          addSubmissionToResponses(submission, fen, certainty)
+          addSubmissionToResponses(submission, certainty)
 
         # generate response
         msg = "%s%s%s" % (
           getResponseHeader(),
-          getResponseToChessboardTopic(submission.title, fen, fen_img_link, certainty), \
-          getResponseFooter(fen))
+          getResponseToChessboardTopic(submission.title, fen, certainty), \
+          getResponseFooter(submission.title, fen))
         # respond, keep trying till success
         while True:
           try:

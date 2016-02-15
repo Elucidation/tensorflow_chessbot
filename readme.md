@@ -41,7 +41,7 @@ ChessFenBot automatically replied to [this reddit post](https://www.reddit.com/r
 
 ## Workflow
 
-There are three ipython notebooks which show the workflow from turning a screenshot of a chessboard into a set of 32x32 grayscale tiles, to generating those tiles for training and testing, and then the actual training and learning of the neural network from those trials using [TensorFlow](tensorflow.org).
+There are three ipython notebooks which show the workflow from turning a screenshot of a chessboard into a set of 32x32 grayscale tiles, to generating those tiles for training and testing, and then the actual training and learning of the neural network from those trials using [TensorFlow](http://www.tensorflow.org).
 
 1. [tensorflow_chessbot.ipynb](tensorflow_chessbot.ipynb) - Computer Vision
 1. [tensorflow_generate_training_data.ipynb](tensorflow_generate_training_data.ipynb) - Generating a dataset from set of screenshots of chessboards in known configurations
@@ -69,7 +69,7 @@ Here is 5 example tiles and their associated label, a 13 length one-hot vector c
 
 We train the neural network on generated data from 80 lichess.org screenshots, which is 5120 tiles. We test it with 5 screenshots (320 tiles) as a quick sanity check. Here is a visualization of the weights for the white King, Queen and Rook.
 
-![Some weights][readme_images/weight_KQR.png]
+![Some weights](readme_images/weight_KQR.png)
 
 Finally we can make predictions on images passed by URL, the ones from lichess and visually similar boards work well, the ones that are too different from what we trained for don't work, suggesting that getting more data is in order. Here is a prediction on the image for [this reddit post](https://www.reddit.com/r/chess/comments/45inab/moderate_black_to_play_and_win/)
 
