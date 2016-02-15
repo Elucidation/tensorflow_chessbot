@@ -1,6 +1,26 @@
 # Goal
 Build a Reddit bot that listens on /r/chess and replies to posts with screenshots of chessboards with a link to the lichess.org analysis page and the FEN ([Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)) string of the board.
 
+```py
+predictor = ChessboardPredictor()
+fen, fen_img_link, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
+print "Predicted FEN: %s" % fen
+print "Certainty: %.1f%%" % (certainty*100)
+```
+
+```
+Setting up CNN TensorFlow graph...
+I tensorflow/core/common_runtime/local_device.cc:25] Local device intra op parallelism threads: 8
+I tensorflow/core/common_runtime/local_session.cc:45] Local session inter op parallelism threads: 8
+Loading model 'saved_models/model_10000.ckpt'
+Model restored.
+Certainty range [0.999545 - 1], Avg: 0.999977, Overall: 0.998546
+Predicted FEN: 8/5p2/5k1P/2p4P/1p1p4/8/3K4/8
+Certainty: 99.9%
+Done
+[Finished in 1.8s]
+```
+
 ## Workflow
 
 There are three ipython notebooks which show the workflow from turning a screenshot of a chessboard into a set of 32x32 grayscale tiles, to generating those tiles for training and testing, and then the actual training and learning of the neural network from those trials using [TensorFlow](tensorflow.org).

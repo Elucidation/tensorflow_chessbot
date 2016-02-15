@@ -535,14 +535,9 @@ def loadImageURL(image_url):
 # MAIN
 
 if __name__ == '__main__':
-  # Directory structure
-  # input_type = 'test'
-  # input_chessboard_folder = '%s_chessboards' % input_type
-  # output_tile_folder = '%s_tiles' % input_type
-
-  # generateTileset(input_chessboard_folder, output_tile_folder)
   predictor = ChessboardPredictor()
-
-  print predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
+  fen, fen_img_link, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
+  print "Predicted FEN: %s" % fen
+  print "Certainty: %.1f%%" % (certainty*100)
 
   print "Done"
