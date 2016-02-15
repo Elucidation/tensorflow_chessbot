@@ -1,3 +1,5 @@
+**TL;DR** : Convolutional Neural Network algorithm trained on 32x32 grayscale chess tiles predicts chessboards layouts from online chessboard screenshots, replies to [reddit /r/chess](https://www.reddit.com/r/) posts with predictions.
+
 # Goal
 Build a Reddit bot that listens on /r/chess and replies to posts with screenshots of chessboards with a link to the lichess.org analysis page and the FEN ([Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)) string of the board.
 
