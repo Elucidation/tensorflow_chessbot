@@ -222,7 +222,6 @@ while running:
     continue
   except Exception as e:
     print("Unknown Error, continuing after 30:",e)
-    raise e
     time.sleep(30)
     continue
   except KeyboardInterrupt:
@@ -230,7 +229,7 @@ while running:
     running = False
   finally:
     saveProcessed(already_processed)
-    print("%s - Processed so far:\n%s" % (datetime.now(),already_processed))
+    print("%s - All Processed:\n%s" % (datetime.now(),already_processed))
 
 
 print("%s - Program Ended. Total Processed Submissions (%d replied / %d read):\n%s" % (datetime.now(), count_actual, count, already_processed))
