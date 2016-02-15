@@ -32,7 +32,7 @@ r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 subreddit = r.get_subreddit('chess')
 
 # How many submissions to read from initially
-submission_read_limit = 300
+submission_read_limit = 500
 
 # Filename containing list of submission ids that 
 # have already been processed, updated at end of program
@@ -78,12 +78,30 @@ def getResponseToChessboardTopic(title, fen, certainty):
                       "\n\nReversed Fen: [%s](%s)"
                       "\n\nReversed [Lichess analysis link](%s)" % (original_fen, original_fen_img_link, original_lichess_analysis))
 
+  # Add a little note based on certainty of results
+  pithy_message = getPithyMessage(certainty)
 
-  msg = ("I attempted to generate a chessboard layout from the posted image, with an overall certainty of **%g%%**.\n\n"
+  msg = ("I attempted to generate a chessboard layout from the posted image, with an overall certainty of **%g%%**. *%s*\n\n"
          "FEN: [%s](%s)\n\n"
          "Here is a link to a [Lichess Analysis](%s) - %s to play%s"
-         % (round(certainty*100, 4), fen, fen_img_link, lichess_analysis, to_play_full, black_addendum))
+         % (round(certainty*100, 4), pithy_message, fen, fen_img_link, lichess_analysis, to_play_full, black_addendum))
   return msg
+
+
+# Add a little message based on certainty of response
+pithy_messages = ['A+ ✓',
+'✓',
+'Bit better than TARS\'s honesty parameter.',
+'Eh, I liked my layout better anyway.',
+'Okay, I was at a complete loss.',
+'I am ashamed.',
+'Wow.']
+pithy_messages_cutoffs = [0.98, 0.9, 0.8, 0.7, 0.6, 0.4, 0.0]
+def getPithyMessage(certainty):
+  for cuttoff, pithy_message in zip(pithy_messages_cutoffs, pithy_messages):
+    if certainty >= cuttoff:
+      return pithy_message
+  return ""
 
 def isBlackToPlay(title):
   """Based on post title return if it's black to play (default is white)"""
