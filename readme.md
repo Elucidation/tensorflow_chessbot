@@ -1,7 +1,7 @@
-**TL;DR** : [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wikipedia.org/wiki/Convolutional_neural_network) algorithm trained on 32x32 grayscale chess tiles predicts chessboards layouts from online chessboard screenshots, replies to [reddit /r/chess](https://www.reddit.com/r/) posts with predictions.
+**TL;DR** : [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wikipedia.org/wiki/Convolutional_neural_network) algorithm trained on 32x32 grayscale chess tiles predicts chessboards layouts from online chessboard screenshots, [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) automatically replies to [reddit /r/chess](https://www.reddit.com/r/) posts with predictions.
 
 # Goal
-Build a Reddit bot that listens on /r/chess and replies to posts with screenshots of chessboards with a link to the lichess.org analysis page and the FEN ([Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)) string of the board.
+Build a Reddit bot ([/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) is up) that listens on /r/chess and replies to posts with screenshots of chessboards with a link to the lichess.org analysis page and the FEN ([Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)) string of the board.
 
 ```py
 predictor = ChessboardPredictor()
