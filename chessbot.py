@@ -33,7 +33,7 @@ r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 subreddit = r.get_subreddit('chess')
 
 # How many submissions to read from initially
-submission_read_limit = 100
+submission_read_limit = 300
 
 # Filename containing list of submission ids that 
 # have already been processed, updated at end of program
@@ -185,7 +185,7 @@ while running:
           addSubmissionToFailures(submission)
           continue
         else:
-          addSubmissionToResponses(submission, certainty)
+          addSubmissionToResponses(submission, fen, certainty)
 
         # generate response
         msg = "%s%s%s" % (
