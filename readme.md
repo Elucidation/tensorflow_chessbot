@@ -15,17 +15,12 @@ Build a Reddit bot ([/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) is
 
 ```py
 predictor = ChessboardPredictor()
-fen, fen_img_link, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
+fen, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
 print "Predicted FEN: %s" % fen
 print "Certainty: %.1f%%" % (certainty*100)
 ```
 
 ```
-Setting up CNN TensorFlow graph...
-I tensorflow/core/common_runtime/local_device.cc:25] Local device intra op parallelism threads: 8
-I tensorflow/core/common_runtime/local_session.cc:45] Local session inter op parallelism threads: 8
-Loading model 'saved_models/model_10000.ckpt'
-Model restored.
 Certainty range [0.999545 - 1], Avg: 0.999977, Overall: 0.998546
 Predicted FEN: 8/5p2/5k1P/2p4P/1p1p4/8/3K4/8
 Certainty: 99.9%
