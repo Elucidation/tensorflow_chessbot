@@ -14,7 +14,6 @@ import socket
 
 import auth_config # for PRAW
 import tensorflow_chessbot # For neural network model
-import helper_functions # For neural network model
 
 #########################################################
 # Setup
@@ -57,8 +56,9 @@ def getResponseToChessboardTopic(title, fen, certainty):
   # Default white to play
   to_play = '_w'
   to_play_full = 'White'
-  lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (helper_functions.shortenFEN(fen), to_play)
+  lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
   fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
+  black_addendum = ""
 
   if isBlackToPlay(title):
     to_play = '_b'
@@ -66,16 +66,23 @@ def getResponseToChessboardTopic(title, fen, certainty):
 
     # Flip fen order for black to play, assumes screenshot is flipped
     # fen = '/'.join((reversed(fen.split('/'))))
+    original_fen = fen
     fen = ''.join(reversed(fen))
     fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
-    lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (helper_functions.shortenFEN(fen), to_play)
-    # black_addendum = "\n\nReversed Fen + Lichess analysis link if board is flipped: [%s](%s)" % (helper_functions.shortenFEN(reverse_fen), reverse_lichess_analysis)
+    lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
+    
+    # Unflipped
+    original_lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (original_fen, to_play)
+    original_fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % original_fen
+    black_addendum = ("\n\n*If board is transposed:*"
+                      "\n\nReversed Fen: [%s](%s)"
+                      "\n\nReversed [Lichess analysis link](%s)" % (original_fen, original_fen_img_link, original_lichess_analysis))
 
 
   msg = ("I attempted to generate a chessboard layout from the posted image, with an overall certainty of **%g%%**.\n\n"
          "FEN: [%s](%s)\n\n"
-         "Here is a link to a [Lichess Analysis](%s) - %s to play"
-         % (round(certainty*100, 4), fen, fen_img_link, lichess_analysis, to_play_full))
+         "Here is a link to a [Lichess Analysis](%s) - %s to play%s"
+         % (round(certainty*100, 4), fen, fen_img_link, lichess_analysis, to_play_full, black_addendum))
   return msg
 
 def isBlackToPlay(title):
@@ -87,13 +94,20 @@ def getResponseHeader():
 
 def getResponseFooter(title, fen):
   to_play = '_w'
+  black_addendum = ""
   if isBlackToPlay(title):
     to_play = '_b'
-  lichess_editor = 'http://www.lichess.org/editor/%s%s' % (helper_functions.shortenFEN(fen), to_play)
+    original_fen = fen
+    fen = ''.join(reversed(fen))
+    original_lichess_editor = 'http://www.lichess.org/editor/%s%s' % (original_fen, to_play)
+    black_addendum = "^(/)[^((Flipped))](%s)" % original_lichess_editor
+  
+  lichess_editor = 'http://www.lichess.org/editor/%s%s' % (fen, to_play)
+
   return ("\n\n---\n\n"
          "^(Yes I am a machine learning bot | )"
          "[^(`How I work`)](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')"
-         "^( | Reply with a corrected FEN or )[^(Editor link)](%s)^( to add to my next training dataset)" % lichess_editor)
+         "^( | Reply with a corrected FEN or )[^(Editor link)](%s)%s^( to add to my next training dataset)" % (lichess_editor, black_addendum))
 
 def waitWithComments(sleep_time, segment=60):
   """Sleep for sleep_time seconds, printing to stdout every segment of time"""
@@ -137,6 +151,13 @@ def addSubmissionToFailures(submission, failures_filename=failures_filename):
   print("%s - Saved failure to file" % datetime.now())  
 
 def addSubmissionToResponses(submission, fen, certainty, responses_filename=responses_filename):
+  # Reverse fen if it's black to play, assuming board is flipped
+  # This is causes issues, need to find a way to determine if board is flipped
+  # when black to play, because sometimes people don't screenshot with board
+  # flipped from black viewpoint, and other times they do.
+  
+  if isBlackToPlay(submission.title):
+    fen = ''.join(reversed(fen))
   with open(responses_filename,'a') as f:
     f.write("%s : %s | %s | %s %g\n" % (submission.id, submission.title, submission.url, fen, certainty))
   print("%s - Saved response to file" % datetime.now())  
@@ -156,7 +177,6 @@ running = True
 # Start up Tensorflow CNN with trained model
 predictor = tensorflow_chessbot.ChessboardPredictor()
 
-replies = []
 while running:
   # get submission stream
   try:
@@ -184,8 +204,6 @@ while running:
           print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
           addSubmissionToFailures(submission)
           continue
-        else:
-          addSubmissionToResponses(submission, fen, certainty)
 
         # generate response
         msg = "%s%s%s" % (
@@ -197,11 +215,15 @@ while running:
           try:
             print("> %s - Responding to %s: %s" % (datetime.now(), submission.id, submission))
             print "\tURL:", submission.url
-            replies.append((submission.id, submission, submission.url))
+            
+            # Reply with comment
             submission.add_comment(msg)
+            
             # update & save list
             already_processed.add(submission.id)
             saveProcessed(already_processed)
+            addSubmissionToResponses(submission, fen, certainty)
+
             count_actual += 1
             # Wait after submitting to not overload
             waitWithComments(600)
