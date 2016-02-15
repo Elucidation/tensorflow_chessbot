@@ -1,3 +1,6 @@
+TensorFlow Chessbot - /u/ChessFenBot [◕ _ ◕]<sup>\* *I make FENs*</sup>
+---
+
 **TL;DR**: 
 > Turn http://i.imgur.com/HnWYt8A.png → [1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1](http://www.lichess.org/analysis/1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1_w)
 
@@ -9,9 +12,6 @@ A [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wik
 * 1024x13 Dropout + Softmax Readout layer
 
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) image posts with online chessboard screenshots with a predicted [FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) and [lichess](http://www.lichess.org) analysis link.
-
-# Goal
-Build a Reddit bot ([/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) is up) that listens on /r/chess and replies to posts with screenshots of chessboards with a link to the lichess.org analysis page and the FEN ([Forsyth-Edwards Notation](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation)) string of the board.
 
 ```py
 predictor = ChessboardPredictor()
