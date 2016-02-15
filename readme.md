@@ -1,4 +1,12 @@
-**TL;DR** : [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wikipedia.org/wiki/Convolutional_neural_network) algorithm trained on 32x32 grayscale chess tiles predicts chessboards layouts from online chessboard screenshots, 
+**TL;DR**: 
+> Turn http://i.imgur.com/HnWYt8A.png → [1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1](http://www.lichess.org/analysis/1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1_w)
+
+A [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wikipedia.org/wiki/Convolutional_neural_network) algorithm trained on 32x32 grayscale chess tiles predicts chessboards layouts from online chessboard screenshots.
+
+* 5x5x32 Input Convolution layer
+* 5x5x64 Convolution layer
+* 8x8x1024 Dense Fully Connected layer
+* 1024x13 Dropout + Softmax Readout layer
 
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) image posts with online chessboard screenshots with a predicted [FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) and [lichess](http://www.lichess.org) analysis link.
 
@@ -52,13 +60,17 @@ There are three ipython notebooks which show the workflow from turning a screens
 1. [tensorflow_learn.ipynb](tensorflow_learn.ipynb) - **TensorFlow Neural Network Training & Prediction** Basic Regression classifier, works for more common lichess.org and chess.com screenshots
 1. [tensorflow_learn_cnn.ipynb](tensorflow_learn_cnn.ipynb) - **TensorFlow Convolutional Neural Network Training & Prediction** tested with ~73% success rate on 71 chess subreddit posts
 
-### #1 [tensorflow_chessbot.ipynb](tensorflow_chessbot.ipynb) - Computer Vision
+---
+
+#### [tensorflow_chessbot.ipynb](tensorflow_chessbot.ipynb) - 1. Computer Vision
 
 Here is a screenshot with the detected lines of the chessboard overlaid, showing where we'll cut the image into tiles.
 
 ![overlay lines](readme_images/overlay_lines.png)
 
-### #2 [tensorflow_generate_training_data.ipynb](tensorflow_generate_training_data.ipynb) - Generating a dataset
+---
+
+####  [tensorflow_generate_training_data.ipynb](tensorflow_generate_training_data.ipynb) - 2. Generating a dataset
 
 [Lichess.org](lichess.org) provides a URL interface with a FEN string that loads a webpage with that board arrayed. A nice repo called [pythonwebkit2png](https://github.com/adamn/python-webkit2png) provides a way to render webpages programmatically, allowing us to generate several (80 in thise) random FEN strings, load the URL and take a screenshot all automatically.
 
@@ -68,8 +80,9 @@ Here is 5 example tiles and their associated label, a 13 length one-hot vector c
 
 ![dataset example](readme_images/dataset_example.png)
 
+---
 
-### #3 [tensorflow_learn.ipynb](tensorflow_learn.ipynb) - **TensorFlow Neural Network Training & Prediction**
+#### [tensorflow_learn.ipynb](tensorflow_learn.ipynb) - 3. TensorFlow Neural Network Training & Prediction
 
 We train the neural network on generated data from 80 lichess.org screenshots, which is 5120 tiles. We test it with 5 screenshots (320 tiles) as a quick sanity check. Here is a visualization of the weights for the white King, Queen and Rook.
 
@@ -79,12 +92,15 @@ Finally we can make predictions on images passed by URL, the ones from lichess a
 
 ![Prediction](readme_images/prediction.png)
 
-### #4 [tensorflow_learn_cnn.ipynb](tensorflow_learn_cnn.ipynb) - **TensorFlow Convolutional Neural Network Training & Prediction**
+---
+
+#### [tensorflow_learn_cnn.ipynb](tensorflow_learn_cnn.ipynb) - TensorFlow Convolutional Neural Network Training & Prediction
 
 Built a slightly larger dataset of ~150 screenshots which is around 9600 tiles which includes randomized FEN diagrams from lichess.org, chess.com, and 2 FEN generated diagram sites.
 
 Tested with ~73% success rate on 71 chess subreddit posts, good enough to make a first draft Reddit bot.
 
+---
 
 ### Ideation
 Reddit post has an image link (perhaps as well as a statement "white/black to play").
