@@ -487,7 +487,7 @@ class ChessboardPredictor(object):
 
     if img == None:
       print "Couldn't load image url: %s" % image_url
-      return None, None, 0.0
+      return None, 0.0
     
     # Make prediction
     fen, certainty = self.getPrediction(img)
@@ -495,7 +495,7 @@ class ChessboardPredictor(object):
       fen = helper_functions.shortenFEN(fen)
       return fen, certainty
     else:
-      return None, None, 0.0
+      return None, 0.0
 
 def loadImageURL(image_url):
   """Load image from url.
