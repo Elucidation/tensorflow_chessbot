@@ -95,7 +95,7 @@ pithy_messages = ['A+ ✓',
 'Eh, I liked my layout better anyway.',
 'Okay, I was at a complete loss.',
 'I am ashamed.',
-'Wow.']
+'[Wow.](http://i.imgur.com/67fZDh9.webm)']
 pithy_messages_cutoffs = [0.98, 0.9, 0.8, 0.7, 0.6, 0.4, 0.0]
 def getPithyMessage(certainty):
   for cuttoff, pithy_message in zip(pithy_messages_cutoffs, pithy_messages):
