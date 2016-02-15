@@ -5,4 +5,10 @@
 *.gif
 saved_models/
 
+# Ignore reddit username/password config file
+auth_config.py
+
+# Ignore tracking files
+*.txt
+
 !readme_images/*

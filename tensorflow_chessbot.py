@@ -493,7 +493,7 @@ class ChessboardPredictor(object):
     fen, certainty = self.getPrediction(img)
     if fen:
       # lichess_analysis_link = 'http://www.lichess.org/analysis/%s' % helper_functions.shortenFEN(fen)
-      fen_img_link = 'http://www.fen-to-image.com/image/30/%s' % fen
+      fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
       fen = helper_functions.shortenFEN(fen)
       return fen, fen_img_link, certainty
     else:

@@ -21,6 +21,24 @@ Done
 [Finished in 1.8s]
 ```
 
+### Reddit Bot Comment Example
+
+ChessFenBot automatically replied to [this reddit post](https://www.reddit.com/r/chess/comments/45osos/very_difficult_find_the_best_move_for_white/d004cg6?context=3), it processed the [screenshot link url](http://i.imgur.com/HnWYt8A.png) and responded with:
+
+> ChessFenBot [◕ _ ◕]<sup>\* *I make FENs*</sup>
+> 
+> ---
+> 
+> I attempted to generate a chessboard layout from the posted image, with an overall certainty of **99.9916%**.
+> 
+> FEN: [1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1](http://www.fen-to-image.com/image/30/1nkr1111/1p111q1p/pP1111pn/P1r11111/111N1p11/11b11B1P/11111PPB/11RQ1RK1.png)
+> 
+> Here is a link to a [Lichess Analysis](http://www.lichess.org/analysis/1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1_w) - White to play
+> 
+> ---
+> 
+> <sup>Yes I am a machine learning bot | [`How I work`](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper') | Reply with a corrected FEN or [Editor link)](http://www.lichess.org/editor/r1b1r1k1/5pp1/p1pR1nNp/8/2B5/2q5/P1P1Q1PP/5R1K) to add to my next training dataset</sup>
+
 ## Workflow
 
 There are three ipython notebooks which show the workflow from turning a screenshot of a chessboard into a set of 32x32 grayscale tiles, to generating those tiles for training and testing, and then the actual training and learning of the neural network from those trials using [TensorFlow](tensorflow.org).
@@ -62,25 +80,6 @@ Finally we can make predictions on images passed by URL, the ones from lichess a
 Built a slightly larger dataset of ~150 screenshots which is around 9600 tiles which includes randomized FEN diagrams from lichess.org, chess.com, and 2 FEN generated diagram sites.
 
 Tested with ~73% success rate on 71 chess subreddit posts, good enough to make a first draft Reddit bot.
-
-## Reddit Bot Comment style
-
-Planning to have the bot reply to a comment with something like this:
-
-ChessFenBot [◕ ◡ ◕]<sup>\*</sup> *~Making FENs so you don't have to~*
-
----
-<sup>Reply with a corrected FEN or [Editor link](http://test) to add to my next training dataset</sup>
-
- I attempted to generate a chessboard layout from the posted image, with a certainty of 70.3%. *Eh, I liked my layout better anyway.*
-
-FEN: [rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR](http://www.gilith.com/chess/diagrams/images/rnbqkbnr_pppppppp_8_8_8_8_PPPPPPPP_RNBQKBNR.png)
-
-[Link to Lichess Analysis](http://thing) / [Editor](http://test)
-
----
-
-<sup>Yes I am a machine learning bot | [`How I work`](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper') | CNN trained with 146 screenshots</sup>
 
 
 ### Ideation
