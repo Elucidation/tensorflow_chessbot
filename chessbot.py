@@ -32,7 +32,10 @@ r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 subreddit = r.get_subreddit('chess')
 
 # How many submissions to read from initially
-submission_read_limit = 500
+submission_read_limit = 1000
+
+# How long to wait after replying to a post before continuing
+reply_wait_time = 60 # 1 min, will wait longer if rate-limited
 
 # Filename containing list of submission ids that 
 # have already been processed, updated at end of program
@@ -57,7 +60,7 @@ def getResponseToChessboardTopic(title, fen, certainty):
   to_play = '_w'
   to_play_full = 'White'
   lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
-  fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
+  fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % fen
   black_addendum = ""
 
   if isBlackToPlay(title):
@@ -118,7 +121,7 @@ def getResponseFooter(title, fen):
     original_fen = fen
     fen = ''.join(reversed(fen))
     original_lichess_editor = 'http://www.lichess.org/editor/%s%s' % (original_fen, to_play)
-    black_addendum = "^(/)[^((Flipped))](%s)" % original_lichess_editor
+    black_addendum = "^(/)[^(Flipped)](%s)" % original_lichess_editor
   
   lichess_editor = 'http://www.lichess.org/editor/%s%s' % (fen, to_play)
 
@@ -244,7 +247,7 @@ while running:
 
             count_actual += 1
             # Wait after submitting to not overload
-            waitWithComments(600)
+            waitWithComments(reply_wait_time)
             break
           except praw.errors.AlreadySubmitted as e:
             print("> %s - Already submitted skipping..." % datetime.now())
