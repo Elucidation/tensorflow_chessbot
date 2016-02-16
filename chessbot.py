@@ -32,7 +32,7 @@ r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 subreddit = r.get_subreddit('chess')
 
 # How many submissions to read from initially
-submission_read_limit = 1000
+submission_read_limit = 100
 
 # How long to wait after replying to a post before continuing
 reply_wait_time = 60 # 1 min, will wait longer if rate-limited
@@ -49,10 +49,12 @@ responses_filename = "submission_responses.txt"
 #########################################################
 # PRAW Helper Functions
 
-def isChessboardTopic(sub):
-  """If white/black (to play), and url is imgur link"""
-  return any([q in sub.title.lower() for q in ['white', 'black']]) \
-         and sub.url != None and 'imgur' in sub.url
+def isPotentialChessboardTopic(sub):
+  """if url is imgur link, or url ends in .png/.jpg/.gif"""
+  if sub.url == None:
+    return False
+  return ('imgur' in sub.url
+          or any([sub.title.lower().endswith(ending) for ending in ['.png', '.jpg', '.gif']]))
 
 def getResponseToChessboardTopic(title, fen, certainty):
   """Parse white/black to play from title, and use prediction results for output"""
@@ -216,7 +218,7 @@ while running:
         continue
       
       # check if submission title is a question
-      if isChessboardTopic(submission):
+      if isPotentialChessboardTopic(submission):
         
         # Use CNN to make a prediction
         print "Image URL: %s" % submission.url
