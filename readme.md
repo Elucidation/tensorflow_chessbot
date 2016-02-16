@@ -11,6 +11,10 @@ A [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wik
 * 8x8x1024 Dense Fully Connected layer
 * 1024x13 Dropout + Softmax Readout layer
 
+Yes, using a CNN is kinda overkill, but it is *exciting*.
+
+### Reddit Bot
+
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) image posts with online chessboard screenshots with a predicted [FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) and [lichess](http://www.lichess.org) analysis link.
 
 ```py
@@ -27,8 +31,6 @@ Certainty: 99.9%
 Done
 [Finished in 1.8s]
 ```
-
-### Reddit Bot Comment Example
 
 ChessFenBot automatically replied to [this reddit post](https://www.reddit.com/r/chess/comments/45osos/very_difficult_find_the_best_move_for_white/d004cg6?context=3), it processed the [screenshot link url](http://i.imgur.com/HnWYt8A.png) and responded with:
 
