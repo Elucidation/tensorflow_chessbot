@@ -59,47 +59,48 @@ def getResponseToChessboardTopic(title, fen, certainty):
   # Default white to play
   to_play = '_w'
   to_play_full = 'White'
-  lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
-  fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % fen
-  black_addendum = ""
 
+  # If black to play, Flip fen order for black to play, assumes screenshot is flipped
   if isBlackToPlay(title):
     to_play = '_b'
     to_play_full = 'Black'
-
-    # Flip fen order for black to play, assumes screenshot is flipped
-    # fen = '/'.join((reversed(fen.split('/'))))
-    original_fen = fen
     fen = ''.join(reversed(fen))
-    fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen
-    lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
-    
-    # Unflipped
-    original_lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (original_fen, to_play)
-    original_fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % original_fen
-    black_addendum = ("\n\n*If board is transposed:*"
-                      "\n\nReversed Fen: [%s](%s)"
-                      "\n\nReversed [Lichess analysis link](%s)" % (original_fen, original_fen_img_link, original_lichess_analysis))
+
+  lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
+  fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % fen
+
+  # Add reverse always
+  reverse_fen = ''.join(reversed(fen))
+  reverse_fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % reverse_fen
+  reverse_lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (reverse_fen, to_play)
 
   # Add a little note based on certainty of results
   pithy_message = getPithyMessage(certainty)
 
   msg = ("I attempted to generate a chessboard layout from the posted image, with an overall certainty of **%g%%**. *%s*\n\n"
-         "FEN: [%s](%s)\n\n"
-         "Here is a link to a [Lichess Analysis](%s) - %s to play%s"
-         % (round(certainty*100, 4), pithy_message, fen, fen_img_link, lichess_analysis, to_play_full, black_addendum))
+         "* FEN: [%s](%s)\n"
+         "* Link to [Lichess Analysis](%s) - %s to play\n\n"
+         "\n\n---\n\n"
+         "If board is flipped:\n\n"
+         "* Reversed FEN: [%s](%s)\n"
+         "* Reversed [Lichess Analysis](%s)"
+         % (round(certainty*100, 4), pithy_message, 
+            fen, fen_img_link, 
+            lichess_analysis, to_play_full, 
+            reverse_fen, reverse_fen_img_link,
+            reverse_lichess_analysis))
   return msg
 
 
 # Add a little message based on certainty of response
 pithy_messages = ['A+ ✓',
 '✓',
-'Bit better than TARS\'s honesty parameter.',
-'Eh, I liked my layout better anyway.',
-'Okay, I was at a complete loss.',
-'I am ashamed.',
+'[Close.](http://i.imgur.com/SwKKZlD.jpg)',
+'[WAI](http://gfycat.com/RightHalfIndianglassfish)',
+'[I am ashamed.](http://i.imgur.com/BNwca4R.gifv)',
+'[I tried.](http://i.imgur.com/kmmp0lc.png)',
 '[Wow.](http://i.imgur.com/67fZDh9.webm)']
-pithy_messages_cutoffs = [0.98, 0.9, 0.8, 0.7, 0.6, 0.4, 0.0]
+pithy_messages_cutoffs = [0.99, 0.9, 0.8, 0.7, 0.5, 0.2, 0.0]
 def getPithyMessage(certainty):
   for cuttoff, pithy_message in zip(pithy_messages_cutoffs, pithy_messages):
     if certainty >= cuttoff:
@@ -115,20 +116,22 @@ def getResponseHeader():
 
 def getResponseFooter(title, fen):
   to_play = '_w'
-  black_addendum = ""
+  
+  # If black to play, flip fen
   if isBlackToPlay(title):
     to_play = '_b'
-    original_fen = fen
     fen = ''.join(reversed(fen))
-    original_lichess_editor = 'http://www.lichess.org/editor/%s%s' % (original_fen, to_play)
-    black_addendum = "^(/)[^(Flipped)](%s)" % original_lichess_editor
   
+  # Add reverse always
+  reverse_fen = ''.join(reversed(fen))
+
   lichess_editor = 'http://www.lichess.org/editor/%s%s' % (fen, to_play)
+  reverse_lichess_editor = 'http://www.lichess.org/editor/%s%s' % (reverse_fen, to_play)
 
   return ("\n\n---\n\n"
          "^(Yes I am a machine learning bot | )"
          "[^(`How I work`)](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')"
-         "^( | Reply with a corrected FEN or )[^(Editor link)](%s)%s^( to add to my next training dataset)" % (lichess_editor, black_addendum))
+         "^( | Reply with a corrected FEN or )[^(Editor)](%s)^(/)[^(Flipped)](%s)^( to add to my next training dataset)" % (lichess_editor, reverse_lichess_editor))
 
 def waitWithComments(sleep_time, segment=60):
   """Sleep for sleep_time seconds, printing to stdout every segment of time"""
@@ -223,6 +226,9 @@ while running:
 
         if fen is None:
           print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
+          # update & save list
+          already_processed.add(submission.id)
+          saveProcessed(already_processed)
           addSubmissionToFailures(submission)
           continue
 
