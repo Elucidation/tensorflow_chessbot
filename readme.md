@@ -15,7 +15,9 @@ Yes, using a CNN is kinda overkill, but it is *exciting*.
 
 ### Reddit Bot
 
-[/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) image posts with online chessboard screenshots with a predicted [FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) and [lichess](http://www.lichess.org) analysis link.
+[/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
+
+It replies with a [lichess](http://www.lichess.org) analysis link for that layout and a predicted [FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation).
 
 ```py
 predictor = ChessboardPredictor()
