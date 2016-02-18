@@ -61,6 +61,7 @@ def getResponseToChessboardTopic(title, fen, certainty):
   # Default white to play
   to_play = '_w'
   to_play_full = 'White'
+  fen_img_link = 'http://www.fen-to-image.com/image/30/%s.png' % fen # Don't flip fen image
 
   # If black to play, Flip fen order for black to play, assumes screenshot is flipped
   if isBlackToPlay(title):
@@ -69,28 +70,20 @@ def getResponseToChessboardTopic(title, fen, certainty):
     fen = ''.join(reversed(fen))
 
   lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
-  fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % fen
 
   # Add reverse always
   reverse_fen = ''.join(reversed(fen))
-  reverse_fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % reverse_fen
   reverse_lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (reverse_fen, to_play)
 
   # Add a little note based on certainty of results
   pithy_message = getPithyMessage(certainty)
 
-  msg = ("I attempted to generate a chessboard layout from the posted image, with an overall certainty of **%g%%**. *%s*\n\n"
-         "* FEN: [%s](%s)\n"
-         "* Link to [Lichess Analysis](%s) - %s to play\n\n"
+  msg = ("I attempted to generate a [chessboard layout](%s) from the posted image, with an overall certainty of **%g%%**. *%s*\n\n"
+         "* Link to [Lichess Analysis](%s)[^( Inverted)](%s) - %s to play\n"
+         "* FEN: `%s`"
          "\n\n---\n\n"
-         "If board is flipped:\n\n"
-         "* Reversed FEN: [%s](%s)\n"
-         "* Reversed [Lichess Analysis](%s)"
-         % (round(certainty*100, 4), pithy_message, 
-            fen, fen_img_link, 
-            lichess_analysis, to_play_full, 
-            reverse_fen, reverse_fen_img_link,
-            reverse_lichess_analysis))
+         % (fen_img_link, round(certainty*100, 4), pithy_message, 
+            lichess_analysis, reverse_lichess_analysis, to_play_full, fen))
   return msg
 
 
@@ -114,7 +107,7 @@ def isBlackToPlay(title):
   return 'black to play' in title.lower() or ('black' in title.lower() and 'white' not in title.lower())
 
 def getResponseHeader():
-  return "ChessFenBot [◕ _ ◕]^*  ^(*I make FENs*)\n\n---\n\n"
+  return "[◕ _ ◕]^*\n\n"
 
 def getResponseFooter(title, fen):
   to_play = '_w'
@@ -133,7 +126,7 @@ def getResponseFooter(title, fen):
   return ("\n\n---\n\n"
          "^(Yes I am a machine learning bot | )"
          "[^(`How I work`)](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')"
-         "^( | Reply with a corrected FEN or )[^(Editor)](%s)^(/)[^(Flipped)](%s)^( to add to my next training dataset)" % (lichess_editor, reverse_lichess_editor))
+         "^( | Reply with a corrected FEN or )[^(Editor)](%s)^(/)[^( Inverted)](%s)^( to add to my next training dataset)" % (lichess_editor, reverse_lichess_editor))
 
 def waitWithComments(sleep_time, segment=60):
   """Sleep for sleep_time seconds, printing to stdout every segment of time"""
