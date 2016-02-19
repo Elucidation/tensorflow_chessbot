@@ -86,7 +86,7 @@ def generateMessage(fen, certainty, side):
   # Things that don't rely on black/white to play 
   # FEN image link is aligned with screenshot, not side to play
   vals['unaligned_fen_img_link'] = 'http://www.fen-to-image.com/image/30/%s.png' % fen
-  vals['certainty'] = certainty
+  vals['certainty'] = certainty*100 # to percentage
   vals['pithy_message'] = getPithyMessage(certainty)
   
   vals['to_play_full'] = 'White'
@@ -254,7 +254,7 @@ while running:
         print "\n---\nImage URL: %s" % submission.url
         fen, certainty = predictor.makePrediction(submission.url)
         print "Predicted FEN: %s" % fen
-        print "Certainty: %.1f%%" % (certainty*100)
+        print "Certainty: %.4f%%" % (certainty*100)
 
         if fen is None:
           print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
