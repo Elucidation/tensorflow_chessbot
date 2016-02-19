@@ -52,7 +52,7 @@ responses_filename = "submission_responses.txt"
 message_template = """[◕ _ ◕]^*
 
 I attempted to generate a [chessboard layout]({unaligned_fen_img_link}) from the posted image,
-with an overall certainty of **{certainty:.4f}%**. *{pithy_message}*
+with a certainty of **{certainty:.4f}%**. *{pithy_message}*
 
 * Link to [Lichess Analysis]({lichess_analysis})[^( Inverted)]({inverted_lichess_analysis}) - {to_play_full} to play
 * FEN: `{fen}`
