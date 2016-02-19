@@ -11,6 +11,7 @@ from datetime import datetime
 from praw.helpers import submission_stream
 import requests
 import socket
+import re
 
 import auth_config # for PRAW
 import tensorflow_chessbot # For neural network model
@@ -35,7 +36,7 @@ subreddit = r.get_subreddit('chess')
 submission_read_limit = 100
 
 # How long to wait after replying to a post before continuing
-reply_wait_time = 60 # 1 min, will wait longer if rate-limited
+reply_wait_time = 30 # minimum seconds to wait between replies, will also rate-limit safely
 
 # Filename containing list of submission ids that 
 # have already been processed, updated at end of program
@@ -44,10 +45,29 @@ processed_filename = "submissions_already_processed.txt"
 # Submissions computer vision or prediction failed on
 failures_filename = "submission_failures.txt"
 
+# All responses id, fen + certainty
 responses_filename = "submission_responses.txt"
 
+# Response message template
+message_template = """[◕ _ ◕]^*
+
+I attempted to generate a [chessboard layout]({unaligned_fen_img_link}) from the posted image,
+with a certainty of **{certainty:.4f}%**. *{pithy_message}*
+
+* Link to [Lichess Analysis]({lichess_analysis})[^( Inverted)]({inverted_lichess_analysis}) - {to_play_full} to play
+* FEN: `{fen}`
+
+---
+
+^(Yes I am a machine learning bot | )
+[^(`How I work`)](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')
+^( | Reply with a corrected FEN or )[^(Editor)]({lichess_editor})
+^(/)[^( Inverted)]({inverted_lichess_editor})^( to add to my next training dataset)
+
+"""
+
 #########################################################
-# PRAW Helper Functions
+# ChessBot Message Generation Functions
 
 def isPotentialChessboardTopic(sub):
   """if url is imgur link, or url ends in .png/.jpg/.gif"""
@@ -56,43 +76,32 @@ def isPotentialChessboardTopic(sub):
   return ('imgur' in sub.url
           or any([sub.title.lower().endswith(ending) for ending in ['.png', '.jpg', '.gif']]))
 
-def getResponseToChessboardTopic(title, fen, certainty):
-  """Parse white/black to play from title, and use prediction results for output"""
-  # Default white to play
-  to_play = '_w'
-  to_play_full = 'White'
+def invert(fen):
+  return ''.join(reversed(fen))
 
-  # If black to play, Flip fen order for black to play, assumes screenshot is flipped
-  if isBlackToPlay(title):
-    to_play = '_b'
-    to_play_full = 'Black'
-    fen = ''.join(reversed(fen))
+def generateMessage(fen, certainty, side):
+  """Generate response message using FEN, certainty and side for flipping link order"""
+  vals = {} # Holds template responses
 
-  lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (fen, to_play)
-  fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % fen
-
-  # Add reverse always
-  reverse_fen = ''.join(reversed(fen))
-  reverse_fen_img_link = 'http://www.fen-to-image.com/image/30/single/coords/%s.png' % reverse_fen
-  reverse_lichess_analysis = 'http://www.lichess.org/analysis/%s%s' % (reverse_fen, to_play)
-
-  # Add a little note based on certainty of results
-  pithy_message = getPithyMessage(certainty)
-
-  msg = ("I attempted to generate a chessboard layout from the posted image, with an overall certainty of **%g%%**. *%s*\n\n"
-         "* FEN: [%s](%s)\n"
-         "* Link to [Lichess Analysis](%s) - %s to play\n\n"
-         "\n\n---\n\n"
-         "If board is flipped:\n\n"
-         "* Reversed FEN: [%s](%s)\n"
-         "* Reversed [Lichess Analysis](%s)"
-         % (round(certainty*100, 4), pithy_message, 
-            fen, fen_img_link, 
-            lichess_analysis, to_play_full, 
-            reverse_fen, reverse_fen_img_link,
-            reverse_lichess_analysis))
-  return msg
-
+  # Things that don't rely on black/white to play 
+  # FEN image link is aligned with screenshot, not side to play
+  vals['unaligned_fen_img_link'] = 'http://www.fen-to-image.com/image/30/%s.png' % fen
+  vals['certainty'] = certainty*100 # to percentage
+  vals['pithy_message'] = getPithyMessage(certainty)
+  
+  vals['to_play_full'] = 'White'
+  if side == 'b':
+    # Flip FEN if black to play, assumes image is flipped
+    vals['to_play_full'] = 'Black'
+    fen = invert(fen)
+  
+  # Fill out template and return
+  vals['fen'] = fen
+  vals['lichess_analysis'] = 'http://www.lichess.org/analysis/%s_%s' % (fen, side)
+  vals['lichess_editor'] = 'http://www.lichess.org/editor/%s_%s' % (fen, side)
+  vals['inverted_lichess_analysis'] = 'http://www.lichess.org/analysis/%s_%s' % (invert(fen), side)
+  vals['inverted_lichess_editor'] = 'http://www.lichess.org/editor/%s_%s' % (invert(fen), side)
+  return message_template.format(**vals)
 
 # Add a little message based on certainty of response
 pithy_messages = ['A+ ✓',
@@ -109,31 +118,55 @@ def getPithyMessage(certainty):
       return pithy_message
   return ""
 
-def isBlackToPlay(title):
-  """Based on post title return if it's black to play (default is white)"""
-  return 'black to play' in title.lower() or ('black' in title.lower() and 'white' not in title.lower())
+def getSideToPlay(title, fen):
+  """Based on post title return 'w', 'b', or predict from FEN"""
+  title = title.lower()
+  # Return if 'black' in title unless 'white to' is, and vice versa, or predict if neither
+  if 'black' in title:
+    if 'white to' in title:
+      return 'w'
+    return 'b'
+  elif 'white' in title:
+    if 'black to' in title:
+      return 'b'
+    return 'w'
+  else:
+    # Predict side from fen (always returns 'w' or 'b', default 'w')
+    return predictSideFromFEN(fen)
 
-def getResponseHeader():
-  return "ChessFenBot [◕ _ ◕]^*  ^(*I make FENs*)\n\n---\n\n"
+def predictSideFromFEN(fen):
+  """Returns which side it thinks FEN is looking from.
+     Checks number of white and black pieces on either side to determine
+     i.e if more black pieces are on 1-4th ranks, then black to play"""
 
-def getResponseFooter(title, fen):
-  to_play = '_w'
+  # remove spaces values (numbers) from fen
+  fen = re.sub('\d','',fen)
   
-  # If black to play, flip fen
-  if isBlackToPlay(title):
-    to_play = '_b'
-    fen = ''.join(reversed(fen))
+  #split fen to top half and bottom half (top half first)
+  parts = fen.split('/')
+  top = list(''.join(parts[:4]))
+  bottom = list(''.join(parts[4:]))
   
-  # Add reverse always
-  reverse_fen = ''.join(reversed(fen))
+  # If screenshot is aligned from POV of white to play, we'd expect
+  # top to be mostly black pieces (lowercase)
+  # and bottom to be mostly white pieces (uppercase), so lets count
+  top_count_white = sum(list(map(lambda x: ord(x) <= ord('Z'), top)))
+  bottom_count_white = sum(list(map(lambda x: ord(x) <= ord('Z'), bottom)))
 
-  lichess_editor = 'http://www.lichess.org/editor/%s%s' % (fen, to_play)
-  reverse_lichess_editor = 'http://www.lichess.org/editor/%s%s' % (reverse_fen, to_play)
+  top_count_black = sum(list(map(lambda x: ord(x) >= ord('a'), top)))
+  bottom_count_black = sum(list(map(lambda x: ord(x) >= ord('a'), bottom)))
 
-  return ("\n\n---\n\n"
-         "^(Yes I am a machine learning bot | )"
-         "[^(`How I work`)](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')"
-         "^( | Reply with a corrected FEN or )[^(Editor)](%s)^(/)[^(Flipped)](%s)^( to add to my next training dataset)" % (lichess_editor, reverse_lichess_editor))
+  # If more white pieces on top side, or more black pieces on bottom side, black to play
+  if (top_count_white > bottom_count_white or top_count_black < bottom_count_black):
+    return 'b'
+
+  # Otherwise white
+  return 'w'
+
+
+
+#########################################################
+# PRAW Helper Functions
 
 def waitWithComments(sleep_time, segment=60):
   """Sleep for sleep_time seconds, printing to stdout every segment of time"""
@@ -176,16 +209,13 @@ def addSubmissionToFailures(submission, failures_filename=failures_filename):
     f.write("%s : %s | %s\n" % (submission.id, submission.title, submission.url))
   print("%s - Saved failure to file" % datetime.now())  
 
-def addSubmissionToResponses(submission, fen, certainty, responses_filename=responses_filename):
-  # Reverse fen if it's black to play, assuming board is flipped
-  # This is causes issues, need to find a way to determine if board is flipped
-  # when black to play, because sometimes people don't screenshot with board
-  # flipped from black viewpoint, and other times they do.
-  
-  if isBlackToPlay(submission.title):
+def addSubmissionToResponses(submission, fen, certainty, side, responses_filename=responses_filename):
+  # Reverse fen if it's black to play, assumes board is flipped  
+  if side == 'b':
     fen = ''.join(reversed(fen))
+
   with open(responses_filename,'a') as f:
-    f.write("%s : %s | %s | %s %g\n" % (submission.id, submission.title, submission.url, fen, certainty))
+    f.write("%s : %s | %s | %s %s %g\n" % (submission.id, submission.title, submission.url, fen, side, certainty))
   print("%s - Saved response to file" % datetime.now())  
 
 #########################################################
@@ -221,10 +251,10 @@ while running:
       if isPotentialChessboardTopic(submission):
         
         # Use CNN to make a prediction
-        print "Image URL: %s" % submission.url
+        print "\n---\nImage URL: %s" % submission.url
         fen, certainty = predictor.makePrediction(submission.url)
         print "Predicted FEN: %s" % fen
-        print "Certainty: %.1f%%" % (certainty*100)
+        print "Certainty: %.4f%%" % (certainty*100)
 
         if fen is None:
           print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
@@ -232,18 +262,19 @@ while running:
           already_processed.add(submission.id)
           saveProcessed(already_processed)
           addSubmissionToFailures(submission)
+          print "\n---\n"
           continue
 
-        # generate response
-        msg = "%s%s%s" % (
-          getResponseHeader(),
-          getResponseToChessboardTopic(submission.title, fen, certainty), \
-          getResponseFooter(submission.title, fen))
+        # Get side from title or fen
+        side = getSideToPlay(submission.title, fen)
+        # Generate response message
+        msg = generateMessage(fen, certainty, side)
+        print "fen: %s\nside: %s\n" % (fen, side)
+
         # respond, keep trying till success
         while True:
           try:
             print("> %s - Responding to %s: %s" % (datetime.now(), submission.id, submission))
-            print "\tURL:", submission.url
             
             # Reply with comment
             submission.add_comment(msg)
@@ -251,9 +282,10 @@ while running:
             # update & save list
             already_processed.add(submission.id)
             saveProcessed(already_processed)
-            addSubmissionToResponses(submission, fen, certainty)
+            addSubmissionToResponses(submission, fen, certainty, side)
 
             count_actual += 1
+            print "\n---\n"
             # Wait after submitting to not overload
             waitWithComments(reply_wait_time)
             break
@@ -281,6 +313,5 @@ while running:
   finally:
     saveProcessed(already_processed)
     print("%s - All Processed:\n%s" % (datetime.now(),already_processed))
-
 
 print("%s - Program Ended. Total Processed Submissions (%d replied / %d read):\n%s" % (datetime.now(), count_actual, count, already_processed))
