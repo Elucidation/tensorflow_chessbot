@@ -30,7 +30,7 @@ r = praw.Reddit(user_agent=user_agent)
 r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 
 # Get accessor to subreddit
-subreddit = r.get_subreddit('chess')
+subreddit = r.get_subreddit('chess+chessbeginners+AnarchyChess+betterchess')
 
 # How many submissions to read from initially
 submission_read_limit = 100
