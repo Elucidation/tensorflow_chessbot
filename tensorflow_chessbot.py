@@ -28,7 +28,6 @@ import glob
 # Imports for computer vision
 import PIL.Image
 import scipy.signal
-import urllib, cStringIO
 
 import helper_functions
 
@@ -226,11 +225,6 @@ def loadImage(img_file):
 
   # Convert to grayscale and return as an numpy array
   return np.asarray(img.convert("L"), dtype=np.float32)
-
-def loadImageFromURL(img_url):
-  """Load PIL image from URL, keep as color"""
-  img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(img_url).read()))
-  return resizeAsNeeded(img)
 
 def resizeAsNeeded(img):
   """Resize if image larger than 2k pixels on a side"""
@@ -483,7 +477,7 @@ class ChessboardPredictor(object):
   def makePrediction(self,image_url):
     """Return FEN prediction, and certainty for a URL"""
     # Try to load image url
-    img = loadImageURL(image_url)
+    img = helper_functions.loadImageURL(image_url)
 
     if img == None:
       print "Couldn't load image url: %s" % image_url
@@ -496,38 +490,6 @@ class ChessboardPredictor(object):
       return fen, certainty
     else:
       return None, 0.0
-
-def loadImageURL(image_url):
-  """Load image from url.
-  try different ending variations if original url doesn't work"""
-  success = False
-  try:
-    img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url).read()))
-  except IOError, e:
-    pass
-  if not success:
-    try:
-      img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url+'.png').read()))
-      success = True
-    except IOError, e:
-      pass
-  if not success:
-    try:
-      img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url+'.jpg').read()))
-      success = True
-    except IOError, e:
-      pass
-  if not success:
-    try:
-      img = PIL.Image.open(cStringIO.StringIO(urllib.urlopen(image_url+'.gif').read()))
-      success = True
-    except IOError, e:
-      pass
-  
-  if success:
-    return img
-  else:
-    return None
 
 ###########################################################
 # MAIN

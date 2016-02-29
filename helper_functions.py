@@ -7,9 +7,50 @@ import os
 # Imports for visualization
 import PIL.Image
 from cStringIO import StringIO
+import urllib
 from IPython.display import clear_output, Image, display
 import scipy.ndimage as nd
 import scipy.signal
+
+# Imports for pulling metadata from imgur url
+import requests
+from bs4 import BeautifulSoup
+
+def loadImageFromURL(img_url):
+  """Load PIL image from URL, keep as color"""
+  return PIL.Image.open(StringIO(urllib.urlopen(img_url).read()))
+
+def loadImageURL(image_url):
+  """Load image from url.
+  Or metadata url link from imgur"""
+  
+  # If imgur load from metadata
+  if 'imgur' in image_url:
+    return loadImgur(image_url)
+
+  # Otherwise try loading image from url directly
+  try:
+    return loadImageFromURL(image_url)
+  except IOError, e:
+    pass
+  
+  return None
+
+def loadImgur(image_url):
+  """Get metadata head image url from given imgur url"""
+  soup = BeautifulSoup(requests.get(image_url).content, "lxml")
+  
+  # Get metadata tags
+  meta = soup.find_all('meta')
+  # Get the specific tag, ex.
+  # <meta content="https://i.imgur.com/bStt0Fuh.jpg" name="twitter:image"/>
+  tags = list(filter(lambda tag: 'name' in tag.attrs and tag.attrs['name'] == "twitter:image", meta))
+  if tags == []:
+    return None
+  
+  # Load image from metadata url
+  url = tags[0]['content']
+  return loadImageFromURL(url)
 
 def shortenFEN(fen):
   """Reduce FEN to shortest form (ex. '111p11Q' becomes '3p2Q')"""
