@@ -24,9 +24,11 @@ def loadImageURL(image_url):
   """Load image from url.
   Or metadata url link from imgur"""
   
-  # If imgur load from metadata
+  # If imgur try to load from metadata
   if 'imgur' in image_url:
-    return loadImgur(image_url)
+    img = loadImgur(image_url)
+    if img:
+      return img
 
   # Otherwise try loading image from url directly
   try:

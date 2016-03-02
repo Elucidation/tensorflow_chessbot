@@ -33,10 +33,10 @@ r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 subreddit = r.get_subreddit('chess+chessbeginners+AnarchyChess+betterchess')
 
 # How many submissions to read from initially
-submission_read_limit = 100
+submission_read_limit = 1000
 
 # How long to wait after replying to a post before continuing
-reply_wait_time = 30 # minimum seconds to wait between replies, will also rate-limit safely
+reply_wait_time = 10 # minimum seconds to wait between replies, will also rate-limit safely
 
 # Filename containing list of submission ids that 
 # have already been processed, updated at end of program
@@ -74,7 +74,7 @@ def isPotentialChessboardTopic(sub):
   if sub.url == None:
     return False
   return ('imgur' in sub.url
-          or any([sub.title.lower().endswith(ending) for ending in ['.png', '.jpg', '.gif']]))
+          or any([sub.url.lower().endswith(ending) for ending in ['.png', '.jpg', '.gif']]))
 
 def invert(fen):
   return ''.join(reversed(fen))
@@ -177,14 +177,17 @@ def waitWithComments(sleep_time, segment=60):
     print("\t%s - %s seconds to go..." % (datetime.now(), sleep_time))
   time.sleep(sleep_time)
 
-def logInfoPerSubmission(submission, count, count_actual):
+def logInfoPerSubmission(submission, count, count_actual, is_processed=False):
   if ((time.time() - logInfoPerSubmission.last) > 120):
     print("\n\t---\n\t%s - %d processed submissions, %d read\n" % (datetime.now(), count_actual, count))
     logInfoPerSubmission.last = time.time()
+  is_proc = ''
+  if is_processed:
+    is_proc = ' P'
   try:
-    print("#%d Submission(%s): %s" % (count, submission.id, submission))
+    print("#%d Submission(%s%s): %s" % (count, submission.id, is_proc, submission))
   except UnicodeDecodeError as e:
-    print("#%d Submission(%s): <ignoring unicode>" % (count, submission.id))
+    print("#%d Submission(%s%s): <ignoring unicode>" % (count, submission.id, is_proc))
 
 
 logInfoPerSubmission.last = time.time() # 'static' variable
@@ -241,10 +244,11 @@ while running:
     for submission in submissions:
       count += 1
       # print out some debug info
-      logInfoPerSubmission(submission, count, count_actual)
+      is_processed = submission.id in already_processed
+      logInfoPerSubmission(submission, count, count_actual, is_processed)
 
       # Skip if already processed
-      if submission.id in already_processed:
+      if is_processed:
         continue
       
       # check if submission title is a question
