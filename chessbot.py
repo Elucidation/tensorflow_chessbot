@@ -227,7 +227,7 @@ def addSubmissionToResponses(submission, fen, certainty, side, responses_filenam
 
 # Load list of already processed comment ids
 already_processed = loadProcessed()
-print("%s - Starting with already processed: %s\n==========\n\n" % (datetime.now(), already_processed))
+print("%s - Starting with %d already processed\n==========\n\n" % (datetime.now(), len(already_processed)))
 
 count = 0
 count_actual = 0
@@ -316,6 +316,6 @@ while running:
     running = False
   finally:
     saveProcessed(already_processed)
-    print("%s - All Processed:\n%s" % (datetime.now(),already_processed))
+    print("%s - %d Processed total." % (datetime.now(),len(already_processed)))
 
-print("%s - Program Ended. Total Processed Submissions (%d replied / %d read):\n%s" % (datetime.now(), count_actual, count, already_processed))
+print("%s - Program Ended. %d replied / %d read in this session" % (datetime.now(), count_actual, count))
