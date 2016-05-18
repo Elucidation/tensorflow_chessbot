@@ -54,7 +54,7 @@ ChessFenBot automatically replied to [this reddit post](https://www.reddit.com/r
 
 There are three ipython notebooks which show the workflow from turning a screenshot of a chessboard into a set of 32x32 grayscale tiles, to generating those tiles for training and testing, and then the actual training and learning of the neural network from those trials using [TensorFlow](http://www.tensorflow.org).
 
-1. [tensorflow_chessbot.ipynb](tensorflow_chessbot.ipynb) - Computer Vision
+1. [tensorflow_chessbot.ipynb](tensorflow_compvision.ipynb) - Computer Vision
 1. [tensorflow_generate_training_data.ipynb](tensorflow_generate_training_data.ipynb) - Generating a dataset from set of screenshots of chessboards in known configurations
 1. [tensorflow_learn.ipynb](tensorflow_learn.ipynb) - **TensorFlow Neural Network Training & Prediction** Basic Regression classifier, works for more common lichess.org and chess.com screenshots
 1. [tensorflow_learn_cnn.ipynb](tensorflow_learn_cnn.ipynb) - **TensorFlow Convolutional Neural Network Training & Prediction** tested with ~73% success rate on 71 chess subreddit posts
