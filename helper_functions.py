@@ -61,6 +61,12 @@ def shortenFEN(fen):
             .replace('111111','6').replace('11111','5') \
             .replace('1111','4').replace('111','3').replace('11','2')
 
+def lengthenFEN(fen):
+  """Lengthen FEN to 71-character form (ex. '3p2Q' becomes '111p11Q')"""
+  return fen.replace('8','11111111').replace('7','1111111') \
+            .replace('6','111111').replace('5','11111') \
+            .replace('4','1111').replace('3','111').replace('2','11')
+
 def display_array(a, fmt='jpeg', rng=[0,1]):
   """Display an array as a picture."""
   a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value

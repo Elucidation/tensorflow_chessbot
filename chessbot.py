@@ -12,6 +12,7 @@ from praw.helpers import submission_stream
 import requests
 import socket
 import re
+from helper_functions import lengthenFEN
 
 import auth_config # for PRAW
 import tensorflow_chessbot # For neural network model
@@ -113,21 +114,25 @@ def generateMessage(fen, certainty, side):
   
   inverted_fen = invert(fen)
 
+  # Get castling status based on pieces being in initial positions or not
+  castle_status = getCastlingStatus(fen)
+  inverted_castle_status = getCastlingStatus(inverted_fen)
+
   # Fill out template and return
-  vals['fen_w'] = "%s w - -" % fen
-  vals['fen_b'] = "%s b - -" % fen
-  vals['inverted_fen_w'] = "%s w - -" % inverted_fen
-  vals['inverted_fen_b'] = "%s b - -" % inverted_fen
+  vals['fen_w'] = "%s w %s -" % (fen, castle_status)
+  vals['fen_b'] = "%s b %s -" % (fen, castle_status)
+  vals['inverted_fen_w'] = "%s w %s -" % (inverted_fen, inverted_castle_status)
+  vals['inverted_fen_b'] = "%s b %s -" % (inverted_fen, inverted_castle_status)
 
-  vals['lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w' % (fen)
-  vals['lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b' % (fen)
-  vals['lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w' % (fen)
-  vals['lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b' % (fen)
+  vals['lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w_%s' % (fen, castle_status)
+  vals['lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b_%s' % (fen, castle_status)
+  vals['lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w_%s' % (fen, castle_status)
+  vals['lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b_%s' % (fen, castle_status)
 
-  vals['inverted_lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w' % (inverted_fen)
-  vals['inverted_lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b' % (inverted_fen)
-  vals['inverted_lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w' % (inverted_fen)
-  vals['inverted_lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b' % (inverted_fen)
+  vals['inverted_lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b_%s' % (inverted_fen, inverted_castle_status)
   
   return message_template.format(**vals)
 
@@ -136,7 +141,7 @@ pithy_messages = ['A+ ✓',
 '✓',
 '[Close.](http://i.imgur.com/SwKKZlD.jpg)',
 '[WAI](http://gfycat.com/RightHalfIndianglassfish)',
-'[I am ashamed.](http://i.imgur.com/BNwca4R.gifv)',
+'[:(](http://i.imgur.com/BNwca4R.gifv)',
 '[I tried.](http://i.imgur.com/kmmp0lc.png)',
 '[Wow.](http://i.imgur.com/67fZDh9.webm)']
 pithy_messages_cutoffs = [0.99, 0.9, 0.8, 0.7, 0.5, 0.2, 0.0]
@@ -191,6 +196,33 @@ def predictSideFromFEN(fen):
   # Otherwise white
   return 'w'
 
+def getCastlingStatus(fen):
+  """Check FEN to see if castling is allowed based on initial positions.
+     Returns 'KQkq' variants or '-' if no castling."""
+  
+  fen = lengthenFEN(fen) # 71-char long fen
+  print(fen)
+  # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR : initial position
+  # 01234567                           01234567 +63
+
+  status = ['','','',''] # KQkq
+  # Check if black king can castle
+  if fen[4] == 'k':
+    # long (q)
+    if fen[0] == 'r':
+      status[3] = 'q'
+    if fen[7] == 'r':
+      status[2] = 'k'
+  # Check if white king can castle
+  if fen[63+4] == 'K':
+    # long (Q)
+    if fen[63+0] == 'R':
+      status[1] = 'Q'
+    if fen[63+7] == 'R':
+      status[0] = 'K'
+  
+  status = ''.join(status)
+  return status if status else '-'
 
 
 #########################################################
