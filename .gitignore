@@ -13,6 +13,7 @@ tiles/
 
 # Ignore reddit username/password config file
 auth_config.py
+praw.ini
 
 # Ignore tracking files
 *.txt

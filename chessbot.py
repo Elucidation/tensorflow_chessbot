@@ -21,19 +21,23 @@ import tensorflow_chessbot # For neural network model
 
 # Set up praw
 chess_fen_bot = "ChessFenBot"
-user_agent = chess_fen_bot + " finds chessboard image posts, uses convolutional neural network to responds with FEN diagram + analysis link. See https://github.com/Elucidation/tensorflow_chessbot"
+# user_agent = chess_fen_bot + " finds chessboard image posts, uses convolutional neural network to responds with FEN diagram + analysis link. See http://github.com/Elucidation/tensorflow_chessbot v0.2"
 
 # Login
-r = praw.Reddit(user_agent=user_agent)
+# r = praw.Reddit(user_agent=user_agent)
+r = praw.Reddit('OAuth testing for u/chessfenbot v0.1') 
 
 # Login old-style due to Reddit politics
 r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 
+
 # Get accessor to subreddit
 subreddit = r.get_subreddit('chess+chessbeginners+AnarchyChess+betterchess')
 
+
+
 # How many submissions to read from initially
-submission_read_limit = 1000
+submission_read_limit = 100
 
 # How long to wait after replying to a post before continuing
 reply_wait_time = 10 # minimum seconds to wait between replies, will also rate-limit safely
@@ -60,7 +64,7 @@ with a certainty of **{certainty:.4f}%**. *{pithy_message}*
 ---
 
 ^(Yes I am a machine learning bot | )
-[^(`How I work`)](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')
+[^(`How I work`)](http://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')
 ^( | Reply with a corrected FEN or )[^(Editor)]({lichess_editor})
 ^(/)[^( Inverted)]({inverted_lichess_editor})^( to add to my next training dataset)
 
@@ -255,10 +259,10 @@ while running:
       if isPotentialChessboardTopic(submission):
         
         # Use CNN to make a prediction
-        print "\n---\nImage URL: %s" % submission.url
+        print("\n---\nImage URL: %s" % submission.url)
         fen, certainty = predictor.makePrediction(submission.url)
-        print "Predicted FEN: %s" % fen
-        print "Certainty: %.4f%%" % (certainty*100)
+        print("Predicted FEN: %s" % fen)
+        print("Certainty: %.4f%%" % (certainty*100))
 
         if fen is None:
           print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
@@ -266,14 +270,14 @@ while running:
           already_processed.add(submission.id)
           saveProcessed(already_processed)
           addSubmissionToFailures(submission)
-          print "\n---\n"
+          print("\n---\n")
           continue
 
         # Get side from title or fen
         side = getSideToPlay(submission.title, fen)
         # Generate response message
         msg = generateMessage(fen, certainty, side)
-        print "fen: %s\nside: %s\n" % (fen, side)
+        print("fen: %s\nside: %s\n" % (fen, side))
 
         # respond, keep trying till success
         while True:
@@ -289,7 +293,7 @@ while running:
             addSubmissionToResponses(submission, fen, certainty, side)
 
             count_actual += 1
-            print "\n---\n"
+            print("\n---\n")
             # Wait after submitting to not overload
             waitWithComments(reply_wait_time)
             break
@@ -304,7 +308,7 @@ while running:
   # Handle errors
   except (socket.error, requests.exceptions.ReadTimeout, requests.packages.urllib3.exceptions.ReadTimeoutError, requests.exceptions.ConnectionError) as e:
     print("> %s - Connection error, resetting accessor, waiting 30 and trying again: %s" % (datetime.now(), e))
-    saveProcessed(already_processed)
+    # saveProcessed(already_processed)
     time.sleep(30)
     continue
   except Exception as e:

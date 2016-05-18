@@ -52,6 +52,7 @@ def loadImgur(image_url):
   
   # Load image from metadata url
   url = tags[0]['content']
+  print("Found imgur metadata URL:", url)
   return loadImageFromURL(url)
 
 def shortenFEN(fen):
