@@ -56,17 +56,31 @@ responses_filename = "submission_responses.txt"
 message_template = """[◕ _ ◕]^*
 
 I attempted to generate a [chessboard layout]({unaligned_fen_img_link}) from the posted image,
-with a certainty of **{certainty:.4f}%**. *{pithy_message}*
+with a certainty of **{certainty:.3f}%**. *{pithy_message}*
 
-* Link to [Lichess Analysis]({lichess_analysis})[^( Inverted)]({inverted_lichess_analysis}) - {to_play_full} to play
-* FEN: `{fen}`
+White to play : [Analysis]({lichess_analysis_w}) | [Editor]({lichess_editor_w}) 
+
+* `{fen_w}`
+
+Black to play : [Analysis]({lichess_analysis_b}) | [Editor]({lichess_editor_b})
+
+* `{fen_b}`
+
+> ▼ Links for when pieces are inverted on the board:
+> 
+> *White to play : [Analysis]({inverted_lichess_analysis_w}) | [Editor]({inverted_lichess_editor_w})*
+> 
+> ^(`{inverted_fen_w}`)
+>
+> *Black to play : [Analysis]({inverted_lichess_analysis_b}) | [Editor]({inverted_lichess_editor_b})*
+>
+> ^(`{inverted_fen_b}`)
 
 ---
 
 ^(Yes I am a machine learning bot | )
 [^(`How I work`)](http://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')
-^( | Reply with a corrected FEN or )[^(Editor)]({lichess_editor})
-^(/)[^( Inverted)]({inverted_lichess_editor})^( to add to my next training dataset)
+^( | Reply with a corrected FEN to add to my next training dataset)
 
 """
 
@@ -90,21 +104,31 @@ def generateMessage(fen, certainty, side):
   # Things that don't rely on black/white to play 
   # FEN image link is aligned with screenshot, not side to play
   vals['unaligned_fen_img_link'] = 'http://www.fen-to-image.com/image/30/%s.png' % fen
-  vals['certainty'] = certainty*100 # to percentage
+  vals['certainty'] = certainty*100.0 # to percentage
   vals['pithy_message'] = getPithyMessage(certainty)
   
-  vals['to_play_full'] = 'White'
   if side == 'b':
     # Flip FEN if black to play, assumes image is flipped
-    vals['to_play_full'] = 'Black'
     fen = invert(fen)
   
+  inverted_fen = invert(fen)
+
   # Fill out template and return
-  vals['fen'] = fen
-  vals['lichess_analysis'] = 'http://www.lichess.org/analysis/%s_%s' % (fen, side)
-  vals['lichess_editor'] = 'http://www.lichess.org/editor/%s_%s' % (fen, side)
-  vals['inverted_lichess_analysis'] = 'http://www.lichess.org/analysis/%s_%s' % (invert(fen), side)
-  vals['inverted_lichess_editor'] = 'http://www.lichess.org/editor/%s_%s' % (invert(fen), side)
+  vals['fen_w'] = "%s w - -" % fen
+  vals['fen_b'] = "%s b - -" % fen
+  vals['inverted_fen_w'] = "%s w - -" % inverted_fen
+  vals['inverted_fen_b'] = "%s b - -" % inverted_fen
+
+  vals['lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w' % (fen)
+  vals['lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b' % (fen)
+  vals['lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w' % (fen)
+  vals['lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b' % (fen)
+
+  vals['inverted_lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w' % (inverted_fen)
+  vals['inverted_lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b' % (inverted_fen)
+  vals['inverted_lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w' % (inverted_fen)
+  vals['inverted_lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b' % (inverted_fen)
+  
   return message_template.format(**vals)
 
 # Add a little message based on certainty of response
