@@ -55,18 +55,6 @@ def loadImgur(image_url):
   print("Found imgur metadata URL:", url)
   return loadImageFromURL(url)
 
-def shortenFEN(fen):
-  """Reduce FEN to shortest form (ex. '111p11Q' becomes '3p2Q')"""
-  return fen.replace('11111111','8').replace('1111111','7') \
-            .replace('111111','6').replace('11111','5') \
-            .replace('1111','4').replace('111','3').replace('11','2')
-
-def lengthenFEN(fen):
-  """Lengthen FEN to 71-character form (ex. '3p2Q' becomes '111p11Q')"""
-  return fen.replace('8','11111111').replace('7','1111111') \
-            .replace('6','111111').replace('5','11111') \
-            .replace('4','1111').replace('3','111').replace('2','11')
-
 def display_array(a, fmt='jpeg', rng=[0,1]):
   """Display an array as a picture."""
   a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value
@@ -147,11 +135,6 @@ def getFENtileLabel(fen,letter,number):
   label['1KQRBNPkqrbnp'.find(piece_letter)] = 1 # note the 1 instead of ' ' due to FEN notation
   # We ignore shorter FENs with numbers > 1 because we generate the FENs ourselves
   return label
-
-def getFENtileLetter(fen,letter,number):
-  """Given a fen string and a rank (number) and file (letter), return piece letter"""
-  piece_letter = fen[(8-number)*8+(8-number) + l2i(letter)]
-  return ' KQRBNPkqrbnp'.find(piece_letter)
 
 def loadImages(image_filepaths):
   # Each tile is a 32x32 grayscale image, add extra axis for working with MNIST Data format

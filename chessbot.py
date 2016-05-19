@@ -12,8 +12,7 @@ from praw.helpers import submission_stream
 import requests
 import socket
 import re
-from helper_functions import lengthenFEN
-
+from helper_functions_chessbot import *
 import auth_config # for PRAW
 import tensorflow_chessbot # For neural network model
 
@@ -31,11 +30,8 @@ r = praw.Reddit('OAuth testing for u/chessfenbot v0.1')
 # Login old-style due to Reddit politics
 r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
 
-
 # Get accessor to subreddit
 subreddit = r.get_subreddit('chess+chessbeginners+AnarchyChess+betterchess')
-
-
 
 # How many submissions to read from initially
 submission_read_limit = 100
@@ -136,95 +132,7 @@ def generateMessage(fen, certainty, side):
   
   return message_template.format(**vals)
 
-# Add a little message based on certainty of response
-pithy_messages = [
-'*[\[ ◕ _ ◕\]^*> ... \[⌐■ _ ■\]^*](http://i.imgur.com/yaVftzT.jpg)*',
-'A+ ✓',
-'✓',
-'[Close.](http://i.imgur.com/SwKKZlD.jpg)',
-'[WAI](http://gfycat.com/RightHalfIndianglassfish)',
-'[:(](http://i.imgur.com/BNwca4R.gifv)',
-'[I tried.](http://i.imgur.com/kmmp0lc.png)',
-'[Wow.](http://i.imgur.com/67fZDh9.webm)']
-pithy_messages_cutoffs = [0.999995, 0.99, 0.9, 0.8, 0.7, 0.5, 0.2, 0.0]
-def getPithyMessage(certainty):
-  for cuttoff, pithy_message in zip(pithy_messages_cutoffs, pithy_messages):
-    if certainty >= cuttoff:
-      return pithy_message
-  return ""
 
-def getSideToPlay(title, fen):
-  """Based on post title return 'w', 'b', or predict from FEN"""
-  title = title.lower()
-  # Return if 'black' in title unless 'white to' is, and vice versa, or predict if neither
-  if 'black' in title:
-    if 'white to' in title:
-      return 'w'
-    return 'b'
-  elif 'white' in title:
-    if 'black to' in title:
-      return 'b'
-    return 'w'
-  else:
-    # Predict side from fen (always returns 'w' or 'b', default 'w')
-    return predictSideFromFEN(fen)
-
-def predictSideFromFEN(fen):
-  """Returns which side it thinks FEN is looking from.
-     Checks number of white and black pieces on either side to determine
-     i.e if more black pieces are on 1-4th ranks, then black to play"""
-
-  # remove spaces values (numbers) from fen
-  fen = re.sub('\d','',fen)
-  
-  #split fen to top half and bottom half (top half first)
-  parts = fen.split('/')
-  top = list(''.join(parts[:4]))
-  bottom = list(''.join(parts[4:]))
-  
-  # If screenshot is aligned from POV of white to play, we'd expect
-  # top to be mostly black pieces (lowercase)
-  # and bottom to be mostly white pieces (uppercase), so lets count
-  top_count_white = sum(list(map(lambda x: ord(x) <= ord('Z'), top)))
-  bottom_count_white = sum(list(map(lambda x: ord(x) <= ord('Z'), bottom)))
-
-  top_count_black = sum(list(map(lambda x: ord(x) >= ord('a'), top)))
-  bottom_count_black = sum(list(map(lambda x: ord(x) >= ord('a'), bottom)))
-
-  # If more white pieces on top side, or more black pieces on bottom side, black to play
-  if (top_count_white > bottom_count_white or top_count_black < bottom_count_black):
-    return 'b'
-
-  # Otherwise white
-  return 'w'
-
-def getCastlingStatus(fen):
-  """Check FEN to see if castling is allowed based on initial positions.
-     Returns 'KQkq' variants or '-' if no castling."""
-  
-  fen = lengthenFEN(fen) # 71-char long fen
-  print(fen)
-  # rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR : initial position
-  # 01234567                           01234567 +63
-
-  status = ['','','',''] # KQkq
-  # Check if black king can castle
-  if fen[4] == 'k':
-    # long (q)
-    if fen[0] == 'r':
-      status[3] = 'q'
-    if fen[7] == 'r':
-      status[2] = 'k'
-  # Check if white king can castle
-  if fen[63+4] == 'K':
-    # long (Q)
-    if fen[63+0] == 'R':
-      status[1] = 'Q'
-    if fen[63+7] == 'R':
-      status[0] = 'K'
-  
-  status = ''.join(status)
-  return status if status else '-'
 
 
 #########################################################
@@ -319,6 +227,7 @@ while running:
         # Use CNN to make a prediction
         print("\n---\nImage URL: %s" % submission.url)
         fen, certainty = predictor.makePrediction(submission.url)
+        fen = shortenFen(fen) # ex. '111pq11r' -> '3pq2r'
         print("Predicted FEN: %s" % fen)
         print("Certainty: %.4f%%" % (certainty*100))
 

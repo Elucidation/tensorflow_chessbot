@@ -486,7 +486,6 @@ class ChessboardPredictor(object):
     # Make prediction
     fen, certainty = self.getPrediction(img)
     if fen:
-      fen = helper_functions.shortenFEN(fen)
       return fen, certainty
     else:
       return None, 0.0
