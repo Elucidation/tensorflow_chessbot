@@ -137,14 +137,16 @@ def generateMessage(fen, certainty, side):
   return message_template.format(**vals)
 
 # Add a little message based on certainty of response
-pithy_messages = ['A+ ✓',
+pithy_messages = [
+'*[\[ ◕ _ ◕\]^*> ... \[⌐■ _ ■\]^*](http://i.imgur.com/yaVftzT.jpg)*',
+'A+ ✓',
 '✓',
 '[Close.](http://i.imgur.com/SwKKZlD.jpg)',
 '[WAI](http://gfycat.com/RightHalfIndianglassfish)',
 '[:(](http://i.imgur.com/BNwca4R.gifv)',
 '[I tried.](http://i.imgur.com/kmmp0lc.png)',
 '[Wow.](http://i.imgur.com/67fZDh9.webm)']
-pithy_messages_cutoffs = [0.99, 0.9, 0.8, 0.7, 0.5, 0.2, 0.0]
+pithy_messages_cutoffs = [0.999995, 0.99, 0.9, 0.8, 0.7, 0.5, 0.2, 0.0]
 def getPithyMessage(certainty):
   for cuttoff, pithy_message in zip(pithy_messages_cutoffs, pithy_messages):
     if certainty >= cuttoff:
