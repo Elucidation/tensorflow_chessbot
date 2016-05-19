@@ -229,7 +229,7 @@ def loadImage(img_file):
 def resizeAsNeeded(img):
   """Resize if image larger than 2k pixels on a side"""
   if img.size[0] > 2000 or img.size[1] > 2000:
-    print "Image too big (%d x %d)" % (img.size[0], img.size[1])
+    print("Image too big (%d x %d)" % (img.size[0], img.size[1]))
     new_size = 500.0 # px
     if img.size[0] > img.size[1]:
       # resize by width to new limit
@@ -237,9 +237,9 @@ def resizeAsNeeded(img):
     else:
       # resize by height
       ratio = new_size / img.size[1]
-    print "Reducing by factor of %.2g" % (1./ratio)
+    print("Reducing by factor of %.2g" % (1./ratio))
     img = img.resize(img.size * ratio, PIL.Image.ADAPTIVE)
-    print "New size: (%d x %d)" % (img.size[0], img.size[1])
+    print("New size: (%d x %d)" % (img.size[0], img.size[1]))
   return img
 
 def getTiles(img_arr):
@@ -284,7 +284,7 @@ def getTiles(img_arr):
     if is_match:
       break
     else:
-      print "Trying %d%% of threshold" % (100*percentage)
+      print("Trying %d%% of threshold" % (100*percentage))
       lines_x, lines_y, is_match = getChessLines(hdx, hdy, 
         hdx_thresh * percentage, hdy_thresh * percentage)
 
@@ -292,7 +292,7 @@ def getTiles(img_arr):
   if is_match:
     return getChessTiles(img_arr, lines_x, lines_y)
   else:
-    print "\tNo Match, lines found (dx/dy):", lines_x, lines_y
+    print("\tNo Match, lines found (dx/dy):", lines_x, lines_y)
     return [] # No match, no tiles
 
 def saveTiles(tiles, img_save_dir, img_file):
@@ -328,7 +328,7 @@ def generateTileset(input_chessboard_folder, output_tile_folder):
   num_skipped = 0
 
   for i, img_path in enumerate(img_files):
-    print "#% 3d/%d : %s" % (i+1, len(img_files), img_path)
+    print("#% 3d/%d : %s" % (i+1, len(img_files), img_path))
     # Strip to just filename
     img_file = img_path[len(input_chessboard_folder)+1:-4]
 
@@ -336,36 +336,36 @@ def generateTileset(input_chessboard_folder, output_tile_folder):
     img_save_dir = "%s/tiles_%s" % (output_tile_folder, img_file)
     
     if os.path.exists(img_save_dir):
-      print "\tSkipping existing"
+      print("\tSkipping existing")
       num_skipped += 1
       continue
     
     # Load image
-    print "---"
-    print "Loading %s..." % img_path
+    print("---")
+    print("Loading %s..." % img_path)
     img_arr = loadImage(img_path)
 
     # Get tiles
-    print "\tGenerating tiles for %s..." % img_file
+    print("\tGenerating tiles for %s..." % img_file)
     tiles = getTiles(img_arr)
 
     # Save tiles
     if len(tiles) > 0:
-      print "\tSaving tiles %s" % img_file
+      print("\tSaving tiles %s" % img_file)
       saveTiles(tiles, img_save_dir, img_file)
       num_success += 1
     else:
-      print "\tNo Match, skipping"
+      print("\tNo Match, skipping")
       num_failed += 1
 
-  print "\t%d/%d generated, %d failures, %d skipped." % (num_success,
-    len(img_files) - num_skipped, num_failed, num_skipped)
+  print("\t%d/%d generated, %d failures, %d skipped." % (num_success,
+    len(img_files) - num_skipped, num_failed, num_skipped))
 
 class ChessboardPredictor(object):
   """ChessboardPredictor using saved model"""
   def __init__(self, model_path='saved_models/model_10000.ckpt'):
 
-    print "Setting up CNN TensorFlow graph..."
+    print("Setting up CNN TensorFlow graph...")
     def weight_variable(shape, name=""):
         initial = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial, name)
@@ -439,9 +439,9 @@ class ChessboardPredictor(object):
     self.sess = tf.Session()
 
     # Restore model from checkpoint
-    print "Loading model '%s'" % model_path
+    print("Loading model '%s'" % model_path)
     saver.restore(self.sess, model_path)
-    print "Model restored."
+    print("Model restored.")
 
   def getPrediction(self,img):
     """Run trained neural network on tiles generated from image"""
@@ -452,7 +452,7 @@ class ChessboardPredictor(object):
     # Use computer vision to get the tiles
     tiles = getTiles(img_arr)
     if tiles is None or len(tiles) == 0:
-      print "Couldn't parse chessboard"
+      print("Couldn't parse chessboard")
       return None, 0.0
     
     # Reshape into Nx1024 rows of input data, format used by neural network
@@ -463,7 +463,7 @@ class ChessboardPredictor(object):
     
     # Prediction bounds
     a = np.array(map(lambda x: x[0][x[1]], zip(guess_prob, guessed)))
-    print "Certainty range [%g - %g], Avg: %g, Overall: %g" % (a.min(), a.max(), a.mean(), a.prod())
+    print("Certainty range [%g - %g], Avg: %g, Overall: %g" % (a.min(), a.max(), a.mean(), a.prod()))
     
     # Convert guess into FEN string
     # guessed is tiles A1-H8 rank-order, so to make a FEN we just need to flip the files from 1-8 to 8-1
@@ -480,7 +480,7 @@ class ChessboardPredictor(object):
     img = helper_functions.loadImageURL(image_url)
 
     if img == None:
-      print "Couldn't load image url: %s" % image_url
+      print("Couldn't load image url: %s" % image_url)
       return None, 0.0
     
     # Make prediction
@@ -496,7 +496,7 @@ class ChessboardPredictor(object):
 if __name__ == '__main__':
   predictor = ChessboardPredictor()
   fen, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
-  print "Predicted FEN: %s" % fen
-  print "Certainty: %.1f%%" % (certainty*100)
+  print("Predicted FEN: %s" % fen)
+  print("Certainty: %.1f%%" % (certainty*100))
 
-  print "Done"
+  print("Done")
