@@ -21,11 +21,9 @@ import tensorflow_chessbot # For neural network model
 
 # Set up praw
 chess_fen_bot = "ChessFenBot"
-# user_agent = chess_fen_bot + " finds chessboard image posts, uses convolutional neural network to responds with FEN diagram + analysis link. See http://github.com/Elucidation/tensorflow_chessbot v0.2"
 
 # Login
-# r = praw.Reddit(user_agent=user_agent)
-r = praw.Reddit('OAuth testing for u/chessfenbot v0.1') 
+r = praw.Reddit(auth_config.USER_AGENT) 
 
 # Login old-style due to Reddit politics
 r.login(auth_config.USERNAME, auth_config.PASSWORD, disable_warning=True)
