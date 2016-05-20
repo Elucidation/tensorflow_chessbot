@@ -229,9 +229,6 @@ while running:
         # Use CNN to make a prediction
         print("\n---\nImage URL: %s" % submission.url)
         fen, certainty = predictor.makePrediction(submission.url)
-        fen = shortenFen(fen) # ex. '111pq11r' -> '3pq2r'
-        print("Predicted FEN: %s" % fen)
-        print("Certainty: %.4f%%" % (certainty*100))
 
         if fen is None:
           print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
@@ -241,6 +238,10 @@ while running:
           addSubmissionToFailures(submission)
           print("\n---\n")
           continue
+        
+        fen = shortenFEN(fen) # ex. '111pq11r' -> '3pq2r'
+        print("Predicted FEN: %s" % fen)
+        print("Certainty: %.4f%%" % (certainty*100))
 
         # Get side from title or fen
         side = getSideToPlay(submission.title, fen)
