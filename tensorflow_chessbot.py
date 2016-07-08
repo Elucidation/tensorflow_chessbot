@@ -1,7 +1,23 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
-# # TensorFlow Chessbot
+#
+# TensorFlow Chessbot
+# This is the main script for loading and running a trained CNN on chessboard 
+# screenshots.
+#
+#   $ ./tensorflow_chessbot.py -h
+#   usage: tensorflow_chessbot.py [-h] [--url URL] [--filepath FILEPATH]
 # 
-# The goal is to build a Reddit bot that listens on /r/chess for posts with an image in it (perhaps checking also for a statement "white/black to play" and an image link)
+#    Predict a chessboard FEN from supplied local image link or URL
+# 
+#    optional arguments:
+#      -h, --help           show this help message and exit
+#      --url URL            URL of image (ex. http://imgur.com/u4zF5Hj.png)
+#     --filepath FILEPATH  filepath to image (ex. u4zF5Hj.png)
+# 
+# This file is used by chessbot.py, a Reddit bot that listens on /r/chess for 
+# posts with an image in it (perhaps checking also for a statement 
+# "white/black to play" and an image link)
 # 
 # It then takes the image, uses some CV to find a chessboard on it, splits up into
 # a set of images of squares. These are the inputs to the tensorflow CNN
@@ -18,18 +34,25 @@
 # Take most probable set from TF response, use that to generate a FEN of the
 # board, and bot comments on thread with FEN and link to lichess analysis.
 # 
-# A lot of tensorflow code here is heavily adopted from the [tensorflow tutorials](https://www.tensorflow.org/versions/0.6.0/tutorials/pdes/index.html)
+# A lot of tensorflow code here is heavily adopted from the 
+# [tensorflow tutorials](https://www.tensorflow.org/versions/0.6.0/tutorials/pdes/index.html)
 
 import tensorflow as tf
 import numpy as np
 import os
 import glob
+import argparse
 
 # Imports for computer vision
 import PIL.Image
 import scipy.signal
 
 import helper_functions
+
+parser = argparse.ArgumentParser(description='Predict a chessboard FEN from supplied local image link or URL')
+parser.add_argument('--url', help='URL of image (ex. http://imgur.com/u4zF5Hj.png)')
+parser.add_argument('--filepath', help='filepath to image (ex. u4zF5Hj.png)')
+
 
 def make_kernel(a):
   """Transform a 2D array into a convolution kernel"""
@@ -490,13 +513,43 @@ class ChessboardPredictor(object):
     else:
       return None, 0.0
 
+  def makePredictionFromFile(self,image_path):
+    """Return FEN prediction, and certainty for a image file"""
+    # Try to load image url
+    img = helper_functions.loadImageFromPath(image_path)
+
+    if img == None:
+      print("Couldn't load image path: %s" % image_path)
+      return None, 0.0
+    
+    # Make prediction
+    fen, certainty = self.getPrediction(img)
+    if fen:
+      return fen, certainty
+    else:
+      return None, 0.0
+
 ###########################################################
 # MAIN
 
 if __name__ == '__main__':
+  args = parser.parse_args()
+  
+  # Initialize predictor, takes a while, but only needed once
   predictor = ChessboardPredictor()
-  fen, certainty = predictor.makePrediction('http://imgur.com/u4zF5Hj.png')
-  print("Predicted FEN: %s" % fen)
-  print("Certainty: %.1f%%" % (certainty*100))
+
+  if args.filepath:
+    fen, certainty = predictor.makePredictionFromFile(args.filepath)
+    print("Predicted FEN: %s" % fen)
+    print("Certainty: %.1f%%" % (certainty*100))
+  else:
+    if args.url:
+      url = args.url
+    else:
+      url = 'http://imgur.com/u4zF5Hj.png'
+
+    fen, certainty = predictor.makePrediction(url)
+    print("Predicted FEN: %s" % fen)
+    print("Certainty: %.1f%%" % (certainty*100))
 
   print("Done")

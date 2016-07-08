@@ -20,6 +20,10 @@ def loadImageFromURL(img_url):
   """Load PIL image from URL, keep as color"""
   return PIL.Image.open(StringIO(urllib.urlopen(img_url).read()))
 
+def loadImageFromPath(img_path):
+  """Load PIL image from image filepath, keep as color"""
+  return PIL.Image.open(open(img_path,'rb'))
+
 def loadImageURL(image_url):
   """Load image from url.
   Or metadata url link from imgur"""
