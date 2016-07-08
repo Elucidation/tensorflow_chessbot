@@ -4,6 +4,8 @@ TensorFlow Chessbot - /u/ChessFenBot [◕ _ ◕]<sup>\* *I make FENs*</sup>
 **TL;DR**: 
 > Turn http://i.imgur.com/HnWYt8A.png → [1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1](http://www.lichess.org/analysis/1nkr4/1p3q1p/pP4pn/P1r5/3N1p2/2b2B1P/5PPB/2RQ1RK1_w)
 
+![Prediction](readme_images/prediction.png)
+
 A [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wikipedia.org/wiki/Convolutional_neural_network) algorithm trained on 32x32 grayscale chess tiles predicts chessboards layouts from online chessboard screenshots.
 
 * 5x5x32 Input Convolution layer
@@ -20,7 +22,7 @@ On a linux machine which has Tensorflow and SciPy installed
 * [Tensorflow Install instructions](https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html)
 * [SciPy Install Instructions](https://www.scipy.org/install.html), possibly as easy as this on Ubuntu
 
-    sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
+        sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
 
 Download and unzip this directory somewhere : [tensorflow_chessbot](https://github.com/Elucidation/tensorflow_chessbot/archive/master.zip)
 
