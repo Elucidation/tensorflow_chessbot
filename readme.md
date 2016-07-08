@@ -13,6 +13,55 @@ A [TensorFlow](www.tensorflow.org) [Convolutional Neural Network](https://en.wik
 
 Yes, using a CNN is kinda overkill, but it is *exciting*.
 
+### Running Tensorflow_Chessbot on images locally and via URLs
+
+On a linux machine which has Tensorflow and SciPy installed
+
+* [Tensorflow Install instructions](https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html)
+* [SciPy Install Instructions](https://www.scipy.org/install.html), possibly as easy as this on Ubuntu
+
+    sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
+
+Download and unzip this directory somewhere : [tensorflow_chessbot](https://github.com/Elucidation/tensorflow_chessbot/archive/master.zip)
+
+Then, download and unzip this saved model to the same directory  : [tensorflow_chessbot_model_v01.zip](https://drive.google.com/open?id=0BwW6qsUNa47xeUNvQ2M0a053Y0U)
+
+The directory structure should look like `<SOMEWHERE>\tensorflow_chessbot-master\saved_models`
+
+Now, to run pass the following arguments to `tensorflow_chessbot.py`
+
+    $ ./tensorflow_chessbot.py -h
+    usage: tensorflow_chessbot.py [-h] [--url URL] [--filepath FILEPATH]
+    
+    Predict a chessboard FEN from supplied local image link or URL
+    
+    optional arguments:
+      -h, --help           show this help message and exit
+      --url URL            URL of image (ex. http://imgur.com/u4zF5Hj.png)
+      --filepath FILEPATH  filepath to image (ex. u4zF5Hj.png)
+
+By default, it will try and load the URL `http://imgur.com/u4zF5Hj.png` and make a prediction in it, otherwise, you could pass a local file like so (for example with an image file `u4zF5Hj.png` located in the same directory):
+
+    ./tensorflow_chessbot.py --filepath u4zF5Hj.png
+
+Which should output something like:
+
+    ./tensorflow_chessbot.py --filepath ./u4zF5Hj.png
+    Setting up CNN TensorFlow graph...
+    I tensorflow/core/common_runtime/local_device.cc:40] Local device intra op parallelism threads: 2
+    I tensorflow/core/common_runtime/direct_session.cc:58] Direct session inter op parallelism threads: 2
+    Loading model 'saved_models/model_10000.ckpt'
+    Model restored.
+    Certainty range [0.999545 - 1], Avg: 0.999977, Overall: 0.998546
+    Predicted FEN: 11111111/11111p11/11111k1P/11p1111P/1p1p1111/11111111/111K1111/11111111
+    Certainty: 99.9%
+    Done
+
+
+Similarly, a URL can be tested by calling with a URL:
+
+    $ ./tensorflow_chessbot.py --url http://imgur.com/u4zF5Hj.png
+
 ### Reddit Bot
 
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
