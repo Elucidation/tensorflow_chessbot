@@ -7,7 +7,7 @@ import os
 # Imports for visualization
 import PIL.Image
 from cStringIO import StringIO
-import urllib
+import urllib2
 from IPython.display import clear_output, Image, display
 import scipy.ndimage as nd
 import scipy.signal
@@ -18,7 +18,9 @@ from bs4 import BeautifulSoup
 
 def loadImageFromURL(img_url):
   """Load PIL image from URL, keep as color"""
-  return PIL.Image.open(StringIO(urllib.urlopen(img_url).read()))
+  req = urllib2.Request(img_url, headers={'User-Agent' : "TensorFlow Chessbot"})
+  con = urllib2.urlopen(req)
+  return PIL.Image.open(StringIO(con.read()))
 
 def loadImageFromPath(img_path):
   """Load PIL image from image filepath, keep as color"""
