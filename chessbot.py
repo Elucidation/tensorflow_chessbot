@@ -158,7 +158,7 @@ def logInfoPerSubmission(submission, count, count_actual, is_processed=False):
     is_proc = ' P'
   try:
     print("#%d Submission(%s%s): %s" % (count, submission.id, is_proc, submission))
-  except UnicodeDecodeError as e:
+  except (UnicodeDecodeError, UnicodeEncodeError) as e:
     print("#%d Submission(%s%s): <ignoring unicode>" % (count, submission.id, is_proc))
 
 
@@ -255,7 +255,7 @@ while running:
             print("> %s - Responding to %s: %s" % (datetime.now(), submission.id, submission))
             
             # Reply with comment
-            submission.add_comment(msg)
+            # submission.add_comment(msg)
             
             # update & save list
             already_processed.add(submission.id)
