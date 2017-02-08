@@ -255,7 +255,7 @@ while running:
             print("> %s - Responding to %s: %s" % (datetime.now(), submission.id, submission))
             
             # Reply with comment
-            # submission.add_comment(msg)
+            submission.add_comment(msg)
             
             # update & save list
             already_processed.add(submission.id)
