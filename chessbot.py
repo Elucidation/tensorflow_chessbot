@@ -37,16 +37,6 @@ submission_read_limit = 100
 # How long to wait after replying to a post before continuing
 reply_wait_time = 10 # minimum seconds to wait between replies, will also rate-limit safely
 
-# Filename containing list of submission ids that 
-# have already been processed, updated at end of program
-processed_filename = "submissions_already_processed.txt"
-
-# Submissions computer vision or prediction failed on
-failures_filename = "submission_failures.txt"
-
-# All responses id, fen + certainty
-responses_filename = "submission_responses.txt"
-
 # Response message template
 message_template = """[◕ _ ◕]^*
 
@@ -156,57 +146,19 @@ def waitWithComments(sleep_time, segment=60):
     print("\t%s - %s seconds to go..." % (datetime.now(), sleep_time))
   time.sleep(sleep_time)
 
-def logInfoPerSubmission(submission, count, count_actual, is_processed=False):
+def logInfoPerSubmission(submission, count, count_actual):
   if ((time.time() - logInfoPerSubmission.last) > 120):
     print("\n\t---\n\t%s - %d processed submissions, %d read\n" % (datetime.now(), count_actual, count))
     logInfoPerSubmission.last = time.time()
-  is_proc = ''
-  if is_processed:
-    is_proc = ' P'
   try:
-    print("#%d Submission(%s%s): %s" % (count, submission.id, is_proc, submission))
+    print("#%d Submission(%s): %s" % (count, submission.id, submission))
   except (UnicodeDecodeError, UnicodeEncodeError) as e:
-    print("#%d Submission(%s%s): <ignoring unicode>" % (count, submission.id, is_proc))
-
+    print("#%d Submission(%s): <ignoring unicode>" % (count, submission.id))
 
 logInfoPerSubmission.last = time.time() # 'static' variable
 
-def loadProcessed(processed_filename=processed_filename):
-  if not os.path.isfile(processed_filename):
-    print("%s - Starting new processed file" % datetime.now())
-    return set()
-  else:
-    print("Loading existing processed file...")
-    with open(processed_filename,'r') as f:
-      return set([x.strip() for x in f.readlines()])
-
-def saveProcessed(already_processed, processed_filename=processed_filename):
-  with open(processed_filename,'w') as f:
-    for submission_id in already_processed:
-      f.write("%s\n" % submission_id)
-  print("%s - Saved processed ids to file" % datetime.now())
-
-def addSubmissionToFailures(submission, failures_filename=failures_filename):
-  with open(failures_filename,'a') as f:
-    f.write("%s : %s | %s\n" % (submission.id, submission.title, submission.url))
-  print("%s - Saved failure to file" % datetime.now())  
-
-def addSubmissionToResponses(submission, fen, certainty, side, responses_filename=responses_filename):
-  # Reverse fen if it's black to play, assumes board is flipped  
-  if side == 'b':
-    fen = ''.join(reversed(fen))
-
-  with open(responses_filename,'a') as f:
-    f.write("%s : %s | %s | %s %s %g\n" % (submission.id, submission.title, submission.url, fen, side, certainty))
-  print("%s - Saved response to file" % datetime.now())  
-
 #########################################################
 # Main Script
-# Track commend ids that have already been processed successfully
-
-# Load list of already processed comment ids
-already_processed = loadProcessed()
-print("%s - Starting with %d already processed\n==========\n\n" % (datetime.now(), len(already_processed)))
 
 count = 0
 count_actual = 0
@@ -223,11 +175,10 @@ while running:
     for submission in submissions:
       count += 1
       # print out some debug info
-      is_processed = submission.id in already_processed
-      logInfoPerSubmission(submission, count, count_actual, is_processed)
+      logInfoPerSubmission(submission, count, count_actual)
 
       if previouslyRepliedTo(submission, r.user):
-        print('Skipping : Previously Replied')
+        print('\tSkipping, previously replied...')
         continue
       
       # check if submission title is a question
@@ -239,10 +190,6 @@ while running:
 
         if fen is None:
           print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
-          # update & save list
-          already_processed.add(submission.id)
-          saveProcessed(already_processed)
-          addSubmissionToFailures(submission)
           print("\n---\n")
           continue
         
@@ -263,11 +210,6 @@ while running:
             
             # Reply with comment
             submission.add_comment(msg)
-            
-            # update & save list
-            already_processed.add(submission.id)
-            saveProcessed(already_processed)
-            addSubmissionToResponses(submission, fen, certainty, side)
 
             count_actual += 1
             print("\n---\n")
@@ -285,7 +227,6 @@ while running:
   # Handle errors
   except (socket.error, requests.exceptions.ReadTimeout, requests.packages.urllib3.exceptions.ReadTimeoutError, requests.exceptions.ConnectionError) as e:
     print("> %s - Connection error, resetting accessor, waiting 30 and trying again: %s" % (datetime.now(), e))
-    # saveProcessed(already_processed)
     time.sleep(30)
     continue
   except Exception as e:
@@ -296,7 +237,6 @@ while running:
     print("Exiting...")
     running = False
   finally:
-    saveProcessed(already_processed)
-    print("%s - %d Processed total." % (datetime.now(),len(already_processed)))
+    print("%s - %d read, %d replied." % (datetime.now(), count, count_actual))
 
 print("%s - Program Ended. %d replied / %d read in this session" % (datetime.now(), count_actual, count))
