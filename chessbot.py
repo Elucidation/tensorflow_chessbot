@@ -140,6 +140,13 @@ def generateMessage(fen, certainty, side):
 #########################################################
 # PRAW Helper Functions
 
+# Check if submission has a comment by this bot already
+def previouslyRepliedTo(submission, me):
+  for comment in submission.comments:
+    if comment.author == me:
+      return True
+  return False
+
 def waitWithComments(sleep_time, segment=60):
   """Sleep for sleep_time seconds, printing to stdout every segment of time"""
   print("\t%s - %s seconds to go..." % (datetime.now(), sleep_time))
@@ -219,8 +226,8 @@ while running:
       is_processed = submission.id in already_processed
       logInfoPerSubmission(submission, count, count_actual, is_processed)
 
-      # Skip if already processed
-      if is_processed:
+      if previouslyRepliedTo(submission, r.user):
+        print('Skipping : Previously Replied')
         continue
       
       # check if submission title is a question
