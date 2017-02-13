@@ -26,9 +26,5 @@ WORKDIR /tcb
 # Run chessbot by default
 CMD ["/tcb/run_chessbot.sh"]
 
-# Start up the docker instance using
-# <machine>$ docker run -dt --rm --name cfb elucidation/chess_fen_bot
-
-# Alternatively manually start the script from inside in headless mode using:
-# <machine>$ docker exec -it cfb /bin/bash
-# <docker>$ nohup python -u chessbot.py > out.log 2> out_error.log &
+# Start up the docker instance with the proper auth file using
+# <machine>$ docker run -dt --rm --name cfb -v <local_auth_file>:/tcb/auth_config.py elucidation/tensorflow_chessbot
