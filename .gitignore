@@ -4,9 +4,6 @@
 *.jpg
 *.gif
 
-# Ignore saved models
-saved_models/
-
 # Ignore chessboard input images and tile outputs
 chessboards/
 tiles/
