@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <title>Bounds</title>
+</head>
+<body>
+
+<h1>Overlaid Chessboard</h1>
+<canvas id="canvas">
+Your browser does not support the canvas element
+</canvas>
+<p>Original image</p>
+<img id='orig' src="" />
+
+<script>
+
+var orig_img = $("#orig");
+var context = document.getElementById('canvas').getContext('2d');
+
+var corners;
+var img_url;
+
+parseParams = function() {
+  // passed via url, ?x0,y0,x1,y1,encodedURL
+  var param_str = window.location.search.substring(1);
+  var data = param_str.split(',');
+  if (data.length == 5) {
+    corners = data.slice(0,4).map(function(k) {return Number(k);});
+    img_url = decodeURIComponent(data[4]);
+  }
+}
+
+// Get chessboard corners and image url
+parseParams();
+
+// Original image shown unchanged
+orig_img.attr('src',img_url)
+
+function drawChessboardOverlay() {
+  // Draw horizontal lines
+  context.beginPath();
+  context.lineWidth = 3;
+  context.strokeStyle = '#aa0000';
+  for (var i = 1; i < 8; i++) {
+    var dy = Math.round(corners[1] + i * (corners[3]-corners[1])/8);
+    context.moveTo(corners[0], dy);
+    context.lineTo(corners[2], dy);
+  }
+  context.stroke();
+  context.closePath();
+
+  // Draw vertical lines
+  context.beginPath();
+  context.lineWidth = 3;
+  context.strokeStyle = '#00aa00';
+  for (var i = 1; i < 8; i++) {
+    var dx = Math.round(corners[0] + i * (corners[2]-corners[0])/8);
+    context.moveTo(dx, corners[1]);
+    context.lineTo(dx, corners[3]);
+  }
+  context.stroke();
+  context.closePath();
+
+  // Draw outer bounds of chessboard
+  context.beginPath();
+  context.lineWidth = 10;
+  context.strokeStyle = '#ff0000';
+  context.moveTo(corners[0], corners[1]);
+  context.lineTo(corners[2], corners[1]);
+  context.lineTo(corners[2], corners[3]);
+  context.lineTo(corners[0], corners[3]);
+  context.lineTo(corners[0], corners[1]);
+  context.stroke();
+  context.closePath();
+
+}
+
+function showCropImage() {
+  // Load up your image.  Don't attempt to draw it until we know it's been loaded.  
+  var img = new Image();
+  img.onload = function() {
+    // Cropped and resized to 256x256
+    // var dx = corners[2]-corners[0];
+    // var dy = corners[3]-corners[1];
+    // context.drawImage(this,
+    //   corners[0], corners[1],
+    //   dx,
+    //   dy,
+    //   0,0,
+    //   256, 256);
+    
+    // Set canvas size to image
+    document.getElementById('canvas').width = img.width;
+    document.getElementById('canvas').height = img.height;
+    context.drawImage(this,0,0);
+
+    // Draw chessboard overlay onto image
+    drawChessboardOverlay();
+  }
+  img.src = img_url;
+
+}
+
+showCropImage();
+
+
+</script>
+
+</body>
+</html>
