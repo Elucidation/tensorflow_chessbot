@@ -149,7 +149,7 @@ class ChessboardPredictor(object):
   ## Wrapper for chessbot
   def makePrediction(self, url):
     """Try and return a FEN prediction and certainty for URL, return Nones otherwise"""
-    img, url = helper_image_loading.loadImageFromURL(args.url)
+    img, url = helper_image_loading.loadImageFromURL(url)
     result = [None, None]
     
     # Exit on failure to load image
@@ -169,7 +169,7 @@ class ChessboardPredictor(object):
       return result
     
     # Make prediction on input tiles
-    fen, tile_certainties = getPrediction(tiles)
+    fen, tile_certainties = self.getPrediction(tiles)
     
     # Use the worst case certainty as our final uncertainty score
     certainty = tile_certainties.min()

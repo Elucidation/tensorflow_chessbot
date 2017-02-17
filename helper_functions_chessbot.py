@@ -3,6 +3,61 @@
 # Helper functions for the reddit chessbot
 # Includes functions to parse FEN strings and get pithy quotes
 import re
+from helper_functions import lengthenFEN
+from message_template import *
+
+#########################################################
+# ChessBot Message Generation Functions
+
+def isPotentialChessboardTopic(sub):
+  """if url is imgur link, or url ends in .png/.jpg/.gif"""
+  if sub.url == None:
+    return False
+  return ('imgur' in sub.url
+          or any([sub.url.lower().endswith(ending) for ending in ['.png', '.jpg', '.gif']]))
+
+def invert(fen):
+  return ''.join(reversed(fen))
+
+def generateMessage(fen, certainty, side):
+  """Generate response message using FEN, certainty and side for flipping link order"""
+  vals = {} # Holds template responses
+
+  # Things that don't rely on black/white to play 
+  # FEN image link is aligned with screenshot, not side to play
+  vals['unaligned_fen_img_link'] = 'http://www.fen-to-image.com/image/30/%s.png' % fen
+  vals['certainty'] = certainty*100.0 # to percentage
+  vals['pithy_message'] = getPithyMessage(certainty)
+  
+  if side == 'b':
+    # Flip FEN if black to play, assumes image is flipped
+    fen = invert(fen)
+  
+  inverted_fen = invert(fen)
+
+  # Get castling status based on pieces being in initial positions or not
+  castle_status = getCastlingStatus(fen)
+  inverted_castle_status = getCastlingStatus(inverted_fen)
+
+  # Fill out template and return
+  vals['fen_w'] = "%s w %s -" % (fen, castle_status)
+  vals['fen_b'] = "%s b %s -" % (fen, castle_status)
+  vals['inverted_fen_w'] = "%s w %s -" % (inverted_fen, inverted_castle_status)
+  vals['inverted_fen_b'] = "%s b %s -" % (inverted_fen, inverted_castle_status)
+
+  vals['lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w_%s' % (fen, castle_status)
+  vals['lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b_%s' % (fen, castle_status)
+  vals['lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w_%s' % (fen, castle_status)
+  vals['lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b_%s' % (fen, castle_status)
+
+  vals['inverted_lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b_%s' % (inverted_fen, inverted_castle_status)
+  
+  return MESSAGE_TEMPLATE.format(**vals)
+
+
 
 # Add a little message based on certainty of response
 def getPithyMessage(certainty):
