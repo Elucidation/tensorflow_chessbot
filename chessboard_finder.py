@@ -37,9 +37,13 @@ def nonmax_suppress_1d(arr, winsize=5):
       _arr[i] = 0
   return _arr
 
-def findChessboardCorners(img_arr_gray):
+def findChessboardCorners(img_arr_gray, noise_threshold = 8000):
   # Load image grayscale as an numpy array
   # Return None on failure to find a chessboard
+  #
+  # noise_threshold: Ratio of standard deviation of hough values along an axis
+  # versus the number of pixels, manually measured  bad trigger images
+  # at < 5,000 and good  chessboards values at > 10,000
 
   # Get gradients, split into positive and inverted negative components 
   gx, gy = np.gradient(img_arr_gray)
@@ -57,6 +61,12 @@ def findChessboardCorners(img_arr_gray):
   num_px = img_arr_gray.shape[0] * img_arr_gray.shape[1]
   hough_gx = gx_pos.sum(axis=1) * gx_neg.sum(axis=1)
   hough_gy = gy_pos.sum(axis=0) * gy_neg.sum(axis=0)
+
+  # Check that gradient peak signal is strong enough by
+  # comparing normalized standard deviation to threshold
+  if min(hough_gx.std() / hough_gx.size,
+         hough_gy.std() / hough_gy.size) < noise_threshold:
+    return None
   
   # Normalize and skeletonize to just local peaks
   hough_gx = nonmax_suppress_1d(hough_gx) / hough_gx.max()
@@ -326,8 +336,8 @@ def main(url):
 if __name__ == '__main__':
   np.set_printoptions(suppress=True, precision=2)
   parser = argparse.ArgumentParser(description='Find orthorectified chessboard corners in image')
-  parser.add_argument('urls', metavar='urls', type=str,  nargs='+',
-                      help='Input image urls')
+  parser.add_argument('urls', default=['https://i.redd.it/1uw3h772r0fy.png'],
+    metavar='urls', type=str,  nargs='*', help='Input image urls')
   # main('http://www.chessanytime.com/img/jeudirect/simplechess.png')
   # main('https://i.imgur.com/JpzfV3y.jpg')
   # main('https://i.imgur.com/jsCKzU9.jpg')
