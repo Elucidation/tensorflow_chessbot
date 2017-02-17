@@ -27,6 +27,9 @@ with a certainty of **{certainty:.3f}%**. *{pithy_message}*
 
 -
 
+
+[^(Visualization of where the chessboard was)]({visualize_link})
+
 ---
 
 ^(Yes I am a machine learning bot | )

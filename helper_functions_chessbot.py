@@ -19,7 +19,7 @@ def isPotentialChessboardTopic(sub):
 def invert(fen):
   return ''.join(reversed(fen))
 
-def generateMessage(fen, certainty, side):
+def generateMessage(fen, certainty, side, visualize_link):
   """Generate response message using FEN, certainty and side for flipping link order"""
   vals = {} # Holds template responses
 
@@ -54,6 +54,8 @@ def generateMessage(fen, certainty, side):
   vals['inverted_lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b_%s' % (inverted_fen, inverted_castle_status)
   vals['inverted_lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w_%s' % (inverted_fen, inverted_castle_status)
   vals['inverted_lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b_%s' % (inverted_fen, inverted_castle_status)
+
+  vals['visualize_link'] = visualize_link
   
   return MESSAGE_TEMPLATE.format(**vals)
 

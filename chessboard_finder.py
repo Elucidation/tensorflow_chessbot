@@ -37,12 +37,12 @@ def nonmax_suppress_1d(arr, winsize=5):
       _arr[i] = 0
   return _arr
 
-def findChessboardCorners(img_gray):
+def findChessboardCorners(img_arr_gray):
   # Load image grayscale as an numpy array
   # Return None on failure to find a chessboard
 
   # Get gradients, split into positive and inverted negative components 
-  gx, gy = np.gradient(img_gray)
+  gx, gy = np.gradient(img_arr_gray)
   gx_pos = gx.copy()
   gx_pos[gx_pos<0] = 0
   gx_neg = -gx.copy()
@@ -54,7 +54,7 @@ def findChessboardCorners(img_gray):
   gy_neg[gy_neg<0] = 0
 
   # 1-D ampltitude of hough transform of gradients about X & Y axes
-  num_px = img_gray.shape[0] * img_gray.shape[1]
+  num_px = img_arr_gray.shape[0] * img_arr_gray.shape[1]
   hough_gx = gx_pos.sum(axis=1) * gx_neg.sum(axis=1)
   hough_gy = gy_pos.sum(axis=0) * gy_neg.sum(axis=0)
   
@@ -300,30 +300,28 @@ def main(url):
   color_img, url = loadImageFromURL(url)
   if color_img.mode != 'RGB':
     color_img = color_img.convert('RGB')
-  print(color_img.size)
   print("Processing...")
   a = time()
-  img = np.asarray(color_img.convert("L"), dtype=np.float32)
-  corners = findChessboardCorners(img)
+  img_arr = np.asarray(color_img.convert("L"), dtype=np.float32)
+  corners = findChessboardCorners(img_arr)
   print("Took %.4fs" % (time()-a))
   # corners = [x0, y0, x1, y1] where (x0,y0) 
   # is top left and (x1,y1) is bot right
 
   if corners is not None:
-    encoded_url = quote(url, safe='')
-
-    print("Found corners for %s: %s" % (url, corners))
-    link = helper_image_loading.getVisualizeLink(corners, url)
+    print("\tFound corners for %s: %s" % (url, corners))
+    link = getVisualizeLink(corners, url)
     print(link)
 
     # tiles = getChessTilesColor(np.array(color_img), corners)
-    tiles = getChessTilesGray(img, corners)
+    tiles = getChessTilesGray(img_arr, corners)
     plotTiles(tiles)
-
 
     # plt.imshow(color_img, interpolation='none')
     # plt.plot(corners[[0,0,2,2,0]]-0.5, corners[[1,3,3,1,1]]-0.5, color='red', linewidth=1)
     # plt.show()
+  else:
+    print('\tNo corners found in image')
 
 if __name__ == '__main__':
   np.set_printoptions(suppress=True, precision=2)

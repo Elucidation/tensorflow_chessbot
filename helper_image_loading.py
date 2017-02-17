@@ -10,7 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 
 # All images are returned as PIL images, not numpy arrays
-def loadImage(img_file):
+def loadImageGrayscale(img_file):
   """Load image from file, convert to grayscale float32 numpy array"""
   img = PIL.Image.open(img_file)
 

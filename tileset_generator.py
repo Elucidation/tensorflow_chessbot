@@ -67,7 +67,7 @@ def generateTileset(input_chessboard_folder, output_tile_folder):
     # Load image
     print("---")
     print("Loading %s..." % img_path)
-    img_arr = np.array(loadImage(img_path), dtype=np.float32)
+    img_arr = np.array(loadImageGrayscale(img_path), dtype=np.float32)
 
     # Get tiles
     print("\tGenerating tiles for %s..." % img_file)

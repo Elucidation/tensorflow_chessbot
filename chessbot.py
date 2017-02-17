@@ -21,7 +21,7 @@ def generateResponseMessage(submission, predictor):
   print("\n---\nImage URL: %s" % submission.url)
   
   # Use CNN to make a prediction
-  fen, certainty = predictor.makePrediction(submission.url)
+  fen, certainty, visualize_link = predictor.makePrediction(submission.url)
 
   if fen is None:
     print("> %s - Couldn't generate FEN, skipping..." % datetime.now())
@@ -35,7 +35,7 @@ def generateResponseMessage(submission, predictor):
   # Get side from title or fen
   side = getSideToPlay(submission.title, fen)
   # Generate response message
-  msg = generateMessage(fen, certainty, side)
+  msg = generateMessage(fen, certainty, side, visualize_link)
   print("fen: %s\nside: %s\n" % (fen, side))
   return msg
 
@@ -77,6 +77,23 @@ def startStream(args):
       time.sleep(1) # Wait a second between normal submissions
 
 
+def dryRunTest(submission='5tuerh'):
+  reddit = praw.Reddit('CFB') # client credentials set up in local praw.ini file
+  predictor = tensorflow_chessbot.ChessboardPredictor()
+
+  # Use a specific submission
+  submission = reddit.submission(submission)
+  print('Loading %s' % submission.id)
+  # Check if submission passes requirements and wasn't already replied to
+  if isPotentialChessboardTopic(submission):
+    # Generate response
+    response = generateResponseMessage(submission, predictor)
+    print("RESPONSE:\n")
+    print('-----------------------------')
+    print(response)
+    print('-----------------------------')
+
+
 def main(args):
   running = True
   while running:
@@ -103,5 +120,11 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--dry', help='dry run (don\'t actually submit replies)',
                       action="store_true", default=False)
+  parser.add_argument('--test', help='Dry run test on pre-existing comment)',
+                      action="store_true", default=False)
   args = parser.parse_args()
-  main(args)
+  if args.test:
+    print('Doing dry run test on submission')
+    dryRunTest()
+  else:
+    main(args)

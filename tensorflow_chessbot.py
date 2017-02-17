@@ -150,7 +150,7 @@ class ChessboardPredictor(object):
   def makePrediction(self, url):
     """Try and return a FEN prediction and certainty for URL, return Nones otherwise"""
     img, url = helper_image_loading.loadImageFromURL(url)
-    result = [None, None]
+    result = [None, None, None]
     
     # Exit on failure to load image
     if img is None:
@@ -174,8 +174,11 @@ class ChessboardPredictor(object):
     # Use the worst case certainty as our final uncertainty score
     certainty = tile_certainties.min()
 
+    # Get visualize link
+    visualize_link = helper_image_loading.getVisualizeLink(corners, url)
+
     # Update result and return
-    result = [fen, certainty]
+    result = [fen, certainty, visualize_link]
     return result
 
 ###########################################################
