@@ -9,8 +9,8 @@ RUN apt-get -y update && apt-get install -y \
   libjpeg-dev \
    && apt-get clean
 
-# Install older version python reddit api related files
-RUN pip install praw==3.5.0 beautifulsoup4==4.2.1 lxml==3.3.3 Pillow==2.3.0
+# Install python reddit api related files
+RUN pip install praw==4.3.0 beautifulsoup4==4.4.1 lxml==3.3.3 Pillow==4.0.0
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
