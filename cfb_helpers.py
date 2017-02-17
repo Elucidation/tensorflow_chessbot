@@ -5,7 +5,7 @@ from datetime import datetime
 def previouslyRepliedTo(submission, me):
   for comment in submission.comments:
     if comment.author == me:
-      return False
+      return True
   return False
 
 
