@@ -19,7 +19,6 @@ from chessboard_finder import *
 import os
 import glob
 
-
 def saveTiles(tiles, img_save_dir, img_file):
   letters = 'ABCDEFGH'
   if not os.path.exists(img_save_dir):
@@ -68,7 +67,7 @@ def generateTileset(input_chessboard_folder, output_tile_folder):
     # Load image
     print("---")
     print("Loading %s..." % img_path)
-    img_arr = loadImage(img_path)
+    img_arr = np.array(loadImage(img_path), dtype=np.float32)
 
     # Get tiles
     print("\tGenerating tiles for %s..." % img_file)

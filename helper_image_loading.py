@@ -9,12 +9,13 @@ import urllib2
 import requests
 from bs4 import BeautifulSoup
 
+# All images are returned as PIL images, not numpy arrays
 def loadImage(img_file):
   """Load image from file, convert to grayscale float32 numpy array"""
   img = PIL.Image.open(img_file)
 
-  # Convert to grayscale and return as an numpy array
-  return np.asarray(img.convert("L"), dtype=np.float32)
+  # Convert to grayscale and return
+  return img.convert("L")
 
 def loadImageFromURL(url):
   """Load image from url.
@@ -24,12 +25,14 @@ def loadImageFromURL(url):
   if 'imgur' in url:
     url = tryUpdateImgurURL(url)
 
-  # Otherwise try loading image from url directly
+  # Try loading image from url directly
   try:
     req = urllib2.Request(url, headers={'User-Agent' : "TensorFlow Chessbot"})
     con = urllib2.urlopen(req)
+    # Return PIL image and url used
     return PIL.Image.open(StringIO(con.read())), url
   except IOError, e:
+    # Return None on failure to load image from url
     return None, url
 
 def tryUpdateImgurURL(url):
@@ -53,20 +56,24 @@ def loadImageFromPath(img_path):
   return PIL.Image.open(open(img_path,'rb'))
 
 
-def resizeAsNeeded(img):
-  """Resize if image larger than 2k pixels on a side"""
-  if img.size[0] > 2000 or img.size[1] > 2000:
+def resizeAsNeeded(img, max_size=(2000,2000)):
+  if not PIL.Image.isImageType(img):
+    img = PIL.Image.fromarray(img) # Convert to PIL Image if not already
+
+  """Resize if image larger than max size"""
+  if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
     print("Image too big (%d x %d)" % (img.size[0], img.size[1]))
-    new_size = 500.0 # px
+    new_size = np.min(max_size) # px
     if img.size[0] > img.size[1]:
       # resize by width to new limit
-      ratio = new_size / img.size[0]
+      ratio = np.float(new_size) / img.size[0]
     else:
       # resize by height
-      ratio = new_size / img.size[1]
+      ratio = np.float(new_size) / img.size[1]
     print("Reducing by factor of %.2g" % (1./ratio))
-    img = img.resize(img.size * ratio, PIL.Image.ADAPTIVE)
-    print("New size: (%d x %d)" % (img.size[0], img.size[1]))
+    new_size = (np.array(img.size) * ratio).astype(int)
+    print("New size: (%d x %d)" % (new_size[0], new_size[1]))
+    img = img.resize(new_size, PIL.Image.BILINEAR)
   return img
 
 def getVisualizeLink(corners, url):
