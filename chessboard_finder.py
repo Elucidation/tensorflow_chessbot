@@ -16,7 +16,6 @@ import numpy as np
 import PIL.Image
 import argparse
 from time import time
-from matplotlib import pyplot as plt
 from helper_image_loading import *
 
 
@@ -276,6 +275,7 @@ def findGrayscaleTilesInImage(img):
 
 def plotTiles(tiles):
   """Plot color or grayscale tiles as 8x8 subplots"""
+  from matplotlib import pyplot as plt
   plt.figure(figsize=(6,6))
   files = "ABCDEFGH"
   for rank in range(8): # rows (numbers)
