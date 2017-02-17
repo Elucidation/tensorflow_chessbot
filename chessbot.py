@@ -8,11 +8,13 @@ import collections
 import os
 import time
 from datetime import datetime
+# Uses deprecated PRAW version 3.5.0
 from praw.helpers import submission_stream
 import requests
 import socket
 import re
 from helper_functions_chessbot import *
+from helper_functions import shortenFEN
 import auth_config # for PRAW
 import tensorflow_chessbot # For neural network model
 
