@@ -2,7 +2,7 @@
 # Response message template
 MESSAGE_TEMPLATE = """[◕ _ ◕]^*
 
-I attempted to generate a [chessboard layout]({unaligned_fen_img_link}) from the posted image,
+I attempted to generate a [chessboard layout]({unaligned_fen_img_link}) from the posted image[^(what I saw)]({visualize_link}),
 with a certainty of **{certainty:.3f}%**. *{pithy_message}*
 
 -
@@ -27,8 +27,6 @@ with a certainty of **{certainty:.3f}%**. *{pithy_message}*
 
 -
 
-
-[^(Visualization of where the chessboard was)]({visualize_link})
 
 ---
 
