@@ -153,7 +153,10 @@ if __name__ == '__main__':
   args = parser.parse_args()
   if args.test:
     print('Doing dry run test on submission')
-    dryRunTest()
+    if args.sub:
+      dryRunTest(args.sub)
+    else:
+      dryRunTest()
   elif args.sub is not None:
     runSpecificSubmission(args)
   else:
