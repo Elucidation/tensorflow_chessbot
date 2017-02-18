@@ -29,7 +29,7 @@ def generateMessage(fen, certainty, side, visualize_link):
     # Empty chessboard link, fen-to-image doesn't correctly identify those
     vals['unaligned_fen_img_link'] = 'http://i.stack.imgur.com/YxP53.gif'
   else:
-    vals['unaligned_fen_img_link'] = 'http://www.fen-to-image.com/image/30/%s.png' % fen
+    vals['unaligned_fen_img_link'] = 'http://www.fen-to-image.com/image/60/%s.png' % fen
   vals['certainty'] = certainty*100.0 # to percentage
   vals['pithy_message'] = getPithyMessage(certainty)
   
