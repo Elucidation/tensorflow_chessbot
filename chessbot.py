@@ -40,7 +40,7 @@ def generateResponseMessage(submission, predictor):
   return msg
 
 
-def processSubmission(submission, cfb, predictor):
+def processSubmission(submission, cfb, predictor, args, reply_wait_time=10):
   # Check if submission passes requirements and wasn't already replied to
   if isPotentialChessboardTopic(submission):
     if not previouslyRepliedTo(submission, cfb):
@@ -58,7 +58,7 @@ def processSubmission(submission, cfb, predictor):
         logMessage(submission,"[DRY-RUN-REPLIED]")
 
       # Wait after submitting to not overload
-      waitWithComments(REPLY_WAIT_TIME)
+      waitWithComments(reply_wait_time)
     else:
       logMessage(submission,"[SKIP]") # Skip since replied to already
 
@@ -67,20 +67,19 @@ def processSubmission(submission, cfb, predictor):
     time.sleep(1) # Wait a second between normal submissions
 
 def main(args):
+  resetTensorflowGraph()
   running = True
   reddit = praw.Reddit('CFB') # client credentials set up in local praw.ini file
   cfb = reddit.user.me() # ChessFenBot object
   subreddit = reddit.subreddit('chess+chessbeginners+AnarchyChess+betterchess')
   predictor = tensorflow_chessbot.ChessboardPredictor()
 
-  REPLY_WAIT_TIME = 10 # seconds to wait after successful reply
-
   while running:
     # Start live stream on all submissions in the subreddit
     stream = subreddit.stream.submissions()
     try:
       for submission in stream:
-        processSubmission(submission, cfb, predictor)
+        processSubmission(submission, cfb, predictor, args)
     except (socket.error, requests.exceptions.ReadTimeout,
             requests.packages.urllib3.exceptions.ReadTimeoutError,
             requests.exceptions.ConnectionError) as e:
@@ -101,8 +100,29 @@ def main(args):
   predictor.close()
   print('Finished')
 
+def resetTensorflowGraph():
+  """WIP needed to restart predictor after an error"""
+  import tensorflow as tf
+  print('Reset TF graph')
+  tf.reset_default_graph() # clear out graph
+
+def runSpecificSubmission(args):
+  resetTensorflowGraph()
+  reddit = praw.Reddit('CFB') # client credentials set up in local praw.ini file
+  cfb = reddit.user.me() # ChessFenBot object
+  predictor = tensorflow_chessbot.ChessboardPredictor()
+
+  submission = reddit.submission(args.sub)
+  print("URL: ", submission.url)
+  if submission:
+    print('Processing...')
+    processSubmission(submission, cfb, predictor, args)
+
+  predictor.close()
+  print('Done')
 
 def dryRunTest(submission='5tuerh'):
+  resetTensorflowGraph()
   reddit = praw.Reddit('CFB') # client credentials set up in local praw.ini file
   predictor = tensorflow_chessbot.ChessboardPredictor()
 
@@ -129,9 +149,12 @@ if __name__ == '__main__':
                       action="store_true", default=False)
   parser.add_argument('--test', help='Dry run test on pre-existing comment)',
                       action="store_true", default=False)
+  parser.add_argument('--sub', help='Pass submission string to process')
   args = parser.parse_args()
   if args.test:
     print('Doing dry run test on submission')
     dryRunTest()
+  elif args.sub is not None:
+    runSpecificSubmission(args)
   else:
     main(args)

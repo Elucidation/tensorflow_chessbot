@@ -14,7 +14,7 @@ def isPotentialChessboardTopic(sub):
   if sub.url == None:
     return False
   return ('imgur' in sub.url
-          or any([sub.url.lower().endswith(ending) for ending in ['.png', '.jpg', '.gif']]))
+          or any([sub.url.lower().endswith(ending) for ending in ['.png', '.jpg', 'jpeg', '.gif']]))
 
 def invert(fen):
   return ''.join(reversed(fen))

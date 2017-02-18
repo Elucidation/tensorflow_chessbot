@@ -50,7 +50,6 @@ import chessboard_finder
 class ChessboardPredictor(object):
   """ChessboardPredictor using saved model"""
   def __init__(self, model_path='saved_models/model_10000.ckpt'):
-
     def weight_variable(shape, name=""):
         initial = tf.truncated_normal(shape, stddev=0.1)
         return tf.Variable(initial, name)
@@ -117,6 +116,7 @@ class ChessboardPredictor(object):
 
     # Start Interactive session for rest of notebook (else we'd want to close session)
     self.sess = tf.Session()
+    tf.reset_default_graph() # clear out graph
 
     # Restore model from checkpoint
     print("\t Loading model '%s'" % model_path)
