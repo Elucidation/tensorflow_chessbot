@@ -40,7 +40,34 @@ def generateResponseMessage(submission, predictor):
   return msg
 
 
-def startStream(args):
+def processSubmission(submission, cfb, predictor):
+  # Check if submission passes requirements and wasn't already replied to
+  if isPotentialChessboardTopic(submission):
+    if not previouslyRepliedTo(submission, cfb):
+      # Generate response
+      response = generateResponseMessage(submission, predictor)
+      if response is None:
+        logMessage(submission,"[NO-FEN]") # Skip since couldn't generate FEN
+        return
+
+      # Reply to submission with response
+      if not args.dry:
+        logMessage(submission,"[REPLIED]")
+        submission.reply(response)
+      else:
+        logMessage(submission,"[DRY-RUN-REPLIED]")
+
+      # Wait after submitting to not overload
+      waitWithComments(REPLY_WAIT_TIME)
+    else:
+      logMessage(submission,"[SKIP]") # Skip since replied to already
+
+  else:
+    logMessage(submission)
+    time.sleep(1) # Wait a second between normal submissions
+
+def main(args):
+  running = True
   reddit = praw.Reddit('CFB') # client credentials set up in local praw.ini file
   cfb = reddit.user.me() # ChessFenBot object
   subreddit = reddit.subreddit('chess+chessbeginners+AnarchyChess+betterchess')
@@ -48,33 +75,31 @@ def startStream(args):
 
   REPLY_WAIT_TIME = 10 # seconds to wait after successful reply
 
-  # Start live stream on all submissions in the subreddit
-  for submission in subreddit.stream.submissions():
-    
-    # Check if submission passes requirements and wasn't already replied to
-    if isPotentialChessboardTopic(submission):
-      if not previouslyRepliedTo(submission, cfb):
-        # Generate response
-        response = generateResponseMessage(submission, predictor)
-        if response is None:
-          logMessage(submission,"[NO-FEN]") # Skip since couldn't generate FEN
-          continue
+  while running:
+    # Start live stream on all submissions in the subreddit
+    stream = subreddit.stream.submissions()
+    try:
+      for submission in stream:
+        processSubmission(submission, cfb, predictor)
+    except (socket.error, requests.exceptions.ReadTimeout,
+            requests.packages.urllib3.exceptions.ReadTimeoutError,
+            requests.exceptions.ConnectionError) as e:
+      print(
+        "> %s - Connection error, skipping and continuing in 30 seconds: %s" % (
+        datetime.now(), e))
+      time.sleep(30)
+      continue
+    except Exception as e:
+      print("Unknown Error, skipping and continuing in 30 seconds:",e)
+      time.sleep(30)
+      continue
+    except KeyboardInterrupt:
+      print("Keyboard Interrupt: Exiting...")
+      running = False
+      break
 
-        # Reply to submission with response
-        if not args.dry:
-          logMessage(submission,"[REPLIED]")
-          submission.reply(response)
-        else:
-          logMessage(submission,"[DRY-RUN-REPLIED]")
-
-        # Wait after submitting to not overload
-        waitWithComments(REPLY_WAIT_TIME)
-      else:
-        logMessage(submission,"[SKIP]") # Skip since replied to already
-
-    else:
-      logMessage(submission)
-      time.sleep(1) # Wait a second between normal submissions
+  predictor.close()
+  print('Finished')
 
 
 def dryRunTest(submission='5tuerh'):
@@ -93,28 +118,10 @@ def dryRunTest(submission='5tuerh'):
     print(response)
     print('-----------------------------')
 
-
-def main(args):
-  running = True
-  while running:
-    try:
-      startStream(args)
-    except (socket.error, requests.exceptions.ReadTimeout,
-            requests.packages.urllib3.exceptions.ReadTimeoutError,
-            requests.exceptions.ConnectionError) as e:
-      print(
-        "> %s - Connection error, retrying in 30 seconds: %s" % (
-        datetime.now(), e))
-      time.sleep(30)
-      continue
-    except Exception as e:
-      print("Unknown Error, attempting restart in 30 seconds:",e)
-      time.sleep(30)
-      continue
-    except KeyboardInterrupt:
-      print("Keyboard Interrupt: Exiting...")
-      running = False
+  predictor.close()
   print('Finished')
+
+  
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

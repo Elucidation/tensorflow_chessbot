@@ -181,6 +181,10 @@ class ChessboardPredictor(object):
     result = [fen, certainty, visualize_link]
     return result
 
+  def close(self):
+    print("Closing session.")
+    self.sess.close()
+
 ###########################################################
 # MAIN CLI
 
