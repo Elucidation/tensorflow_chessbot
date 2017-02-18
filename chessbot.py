@@ -137,6 +137,8 @@ def dryRunTest(submission='5tuerh'):
     print('-----------------------------')
     print(response)
     print('-----------------------------')
+  else:
+    print('Submission not considered chessboard topic')
 
   predictor.close()
   print('Finished')

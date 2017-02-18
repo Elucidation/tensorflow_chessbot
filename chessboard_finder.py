@@ -308,6 +308,12 @@ def plotTiles(tiles):
 def main(url):
   print("Loading url %s..." % url)
   color_img, url = loadImageFromURL(url)
+  
+  # Fail if can't load image
+  if color_img is None:
+    print('Couldn\'t load url: %s' % url)
+    return
+
   if color_img.mode != 'RGB':
     color_img = color_img.convert('RGB')
   print("Processing...")
