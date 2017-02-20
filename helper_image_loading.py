@@ -22,8 +22,7 @@ def loadImageFromURL(url):
   Or metadata url link from imgur"""
   
   # If imgur try to load from metadata
-  if 'imgur' in url:
-    url = tryUpdateImgurURL(url)
+  url = tryUpdateImgurURL(url)
 
   # Try loading image from url directly
   try:
@@ -37,6 +36,9 @@ def loadImageFromURL(url):
 
 def tryUpdateImgurURL(url):
   """Try to get actual image url from imgur metadata"""
+  if 'imgur' not in url: # Only attempt on urls that have imgur in it
+    return url
+
   soup = BeautifulSoup(requests.get(url).content, "lxml")
   
   # Get metadata tags
