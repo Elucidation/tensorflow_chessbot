@@ -223,6 +223,7 @@ def main(args):
   # Initialize predictor, takes a while, but only needed once
   predictor = ChessboardPredictor()
   fen, tile_certainties = predictor.getPrediction(tiles)
+  predictor.close()
   short_fen = shortenFEN(fen)
   # Use the worst case certainty as our final uncertainty score
   certainty = tile_certainties.min()

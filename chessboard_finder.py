@@ -95,28 +95,33 @@ def findChessboardCorners(img_arr_gray, noise_threshold = 8000):
   seqs_x_vals = [pot_lines_x_vals[[v in seq for v in pot_lines_x]] for seq in seqs_x]
   seqs_y_vals = [pot_lines_y_vals[[v in seq for v in pot_lines_y]] for seq in seqs_y]
 
+  # shorten sequences to up to 9 values based on score
+  # X sequences
   for i in range(len(seqs_x)):
     seq = seqs_x[i]
     seq_val = seqs_x_vals[i]
 
-    # while not inner 7 chess lines, strip weakest edges
-    while len(seq) > 7:
-      if seq_val[0] > seq_val[-1]:
-        seq = seq[:-1]
-        seq_val = seq_val[:-1]
-      else:
-        seq = seq[1:]
-        seq_val = seq_val[1:]
+    # if the length of sequence is more than 7 + edges = 9
+    # strip weakest edges 
+    if len(seq) > 9:
+      # while not inner 7 chess lines, strip weakest edges
+      while len(seq) > 7:
+        if seq_val[0] > seq_val[-1]:
+          seq = seq[:-1]
+          seq_val = seq_val[:-1]
+        else:
+          seq = seq[1:]
+          seq_val = seq_val[1:]
 
     seqs_x[i] = seq
     seqs_x_vals[i] = seq_val
 
+  # Y sequences
   for i in range(len(seqs_y)):
     seq = seqs_y[i]
     seq_val = seqs_y_vals[i]
 
-    # while not inner 7 chess lines, strip weakest edges
-    while len(seq) > 7:
+    while len(seq) > 9:
       if seq_val[0] > seq_val[-1]:
         seq = seq[:-1]
         seq_val = seq_val[:-1]
@@ -127,31 +132,78 @@ def findChessboardCorners(img_arr_gray, noise_threshold = 8000):
     seqs_y[i] = seq
     seqs_y_vals[i] = seq_val
 
-  # Now that we only have length 7 sequences, score and choose the best one
-  scores_x = np.array([np.sum(v) for v in seqs_x_vals])
-  scores_y = np.array([np.sum(v) for v in seqs_y_vals])
+  # Now that we only have length 7-9 sequences, score and choose the best one
+  scores_x = np.array([np.mean(v) for v in seqs_x_vals])
+  scores_y = np.array([np.mean(v) for v in seqs_y_vals])
+
+  # Keep first sequence with the largest step size
+  # scores_x = np.array([np.median(np.diff(s)) for s in seqs_x])
+  # scores_y = np.array([np.median(np.diff(s)) for s in seqs_y])
+
+  #TODO(elucidation): Choose heuristic score between step size and hough response
 
   best_seq_x = seqs_x[scores_x.argmax()]
   best_seq_y = seqs_y[scores_y.argmax()]
+  # print(best_seq_x, best_seq_y)
 
-  # plt.figure(1)
-  # plt.subplot(211)
-  # plt.plot(hough_gx,'.-')
-  # plt.plot(best_seq_x, np.ones(7)*0.5,'o')
-  # plt.subplot(212)
-  # plt.plot(hough_gy,'.-')
-  # plt.plot(best_seq_y, np.ones(7)*0.5,'o')
+  # Now if we have sequences greater than length 7, (up to 9),
+  # that means we have up to 9 possible combinations of sets of 7 sequences
+  # We try all of them and see which has the best checkerboard response
+  sub_seqs_x = [best_seq_x[k:k+7] for k in range(len(best_seq_x) - 7 + 1)]
+  sub_seqs_y = [best_seq_y[k:k+7] for k in range(len(best_seq_y) - 7 + 1)]
 
+  dx = np.median(np.diff(best_seq_x))
+  dy = np.median(np.diff(best_seq_y))
   corners = np.zeros(4, dtype=int)
   
-  # Invert row col to match x/y
-  corners[0] = int(best_seq_y[0]-(best_seq_y[-1]-best_seq_y[0])/6)
-  corners[1] = int(best_seq_x[0]-(best_seq_x[-1]-best_seq_x[0])/6)
-  
-  corners[2] = int(best_seq_y[-1]+(best_seq_y[-1]-best_seq_y[0])/6)
-  corners[3] = int(best_seq_x[-1]+(best_seq_x[-1]-best_seq_x[0])/6)
+  # Add 1 buffer to include the outer tiles, since sequences are only using
+  # inner chessboard lines
+  corners[0] = int(best_seq_y[0]-dy)
+  corners[1] = int(best_seq_x[0]-dx)
+  corners[2] = int(best_seq_y[-1]+dy)
+  corners[3] = int(best_seq_x[-1]+dx)
 
-  return corners
+  # Generate crop image with on full sequence, which may be wider than a normal
+  # chessboard by an extra 2 tiles, we'll iterate over all combinations
+  # (up to 9) and choose the one that correlates best with a chessboard
+  gray_img_crop = PIL.Image.fromarray(img_arr_gray).crop(corners)
+
+  # Build a kernel image of an idea chessboard to correlate against
+  k = 8 # Arbitrarily chose 8x8 pixel tiles for correlation image
+  quad = np.ones([k,k])
+  kernel = np.vstack([np.hstack([quad,-quad]), np.hstack([-quad,quad])])
+  kernel = np.tile(kernel,(4,4)) # Becomes an 8x8 alternating grid (chessboard)
+  kernel = kernel/np.linalg.norm(kernel) # normalize
+  # 8*8 = 64x64 pixel ideal chessboard
+
+  k = 0
+  n = max(len(sub_seqs_x), len(sub_seqs_y))
+  final_corners = None
+  best_score = None
+
+  # Iterate over all possible combinations of sub sequences and keep the corners
+  # with the best correlation response to the ideal 64x64px chessboard
+  for i in range(len(sub_seqs_x)):
+    for j in range(len(sub_seqs_y)):
+      k = k + 1
+      
+      # [y, x, y, x]
+      sub_corners = np.array([
+        sub_seqs_y[j][0]-corners[0]-dy, sub_seqs_x[i][0]-corners[1]-dx,
+        sub_seqs_y[j][-1]-corners[0]+dy, sub_seqs_x[i][-1]-corners[1]+dx],
+        dtype=np.int)
+
+      # Generate crop candidate, nearest pixel is fine for correlation check
+      sub_img = gray_img_crop.crop(sub_corners).resize((64,64)) 
+
+      # Perform correlation score, keep running best corners as our final output
+      # Use absolute since it's possible board is rotated 90 deg
+      score = np.abs(np.sum(kernel * sub_img))
+      if best_score is None or score > best_score:
+        best_score = score
+        final_corners = sub_corners + [corners[0], corners[1], corners[0], corners[1]]
+
+  return final_corners
 
 def getAllSequences(seq, min_seq_len=7, err_px=5):
   """Given sequence of increasing numbers, get all sequences with common
@@ -248,10 +300,19 @@ def getChessTilesGray(img, corners):
     (padl_x + corners[0]):(padl_x + corners[2])]
 
   # 256x256 px image, 32x32px individual tiles
+  # Normalized
   chessboard_img_resized = np.asarray( \
         PIL.Image.fromarray(chessboard_img) \
         .resize([256,256], PIL.Image.BILINEAR), dtype=np.uint8) / 255.0
-  
+
+  return getTiles(chessboard_img_resized)
+
+
+def getTiles(processed_gray_img):
+  # Given 256x256 px normalized grayscale image of a chessboard (32x32px per tile)
+  # NOTE (values must be in range 0-1)
+  # Return a 32x32x64 tile array
+  # 
   # stack deep 64 tiles
   # so, first slab is tile A1, then A2 etc.
   tiles = np.zeros([32,32,64], dtype=np.float32) # grayscale
@@ -260,7 +321,7 @@ def getChessTilesGray(img, corners):
   for rank in range(8): # rows (numbers)
     for file in range(8): # columns (letters)
       tiles[:,:,(rank*8+file)] = \
-        chessboard_img_resized[(7-rank)*32:((7-rank)+1)*32,file*32:(file+1)*32]
+        processed_gray_img[(7-rank)*32:((7-rank)+1)*32,file*32:(file+1)*32]
 
   return tiles
 
@@ -330,8 +391,8 @@ def main(url):
     print(link)
 
     # tiles = getChessTilesColor(np.array(color_img), corners)
-    tiles = getChessTilesGray(img_arr, corners)
-    plotTiles(tiles)
+    # tiles = getChessTilesGray(img_arr, corners)
+    # plotTiles(tiles)
 
     # plt.imshow(color_img, interpolation='none')
     # plt.plot(corners[[0,0,2,2,0]]-0.5, corners[[1,3,3,1,1]]-0.5, color='red', linewidth=1)
@@ -340,6 +401,7 @@ def main(url):
     print('\tNo corners found in image')
 
 if __name__ == '__main__':
+  from matplotlib import pyplot as plt
   np.set_printoptions(suppress=True, precision=2)
   parser = argparse.ArgumentParser(description='Find orthorectified chessboard corners in image')
   parser.add_argument('urls', default=['https://i.redd.it/1uw3h772r0fy.png'],
