@@ -112,15 +112,15 @@ def generateMessage(fen, certainty, side):
   vals['inverted_fen_w'] = "%s w %s -" % (inverted_fen, inverted_castle_status)
   vals['inverted_fen_b'] = "%s b %s -" % (inverted_fen, inverted_castle_status)
 
-  vals['lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w_%s' % (fen, castle_status)
-  vals['lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b_%s' % (fen, castle_status)
-  vals['lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w_%s' % (fen, castle_status)
-  vals['lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b_%s' % (fen, castle_status)
+  vals['lichess_analysis_w'] = 'https://lichess.org/analysis/%s_w_%s' % (fen, castle_status)
+  vals['lichess_analysis_b'] = 'https://lichess.org/analysis/%s_b_%s' % (fen, castle_status)
+  vals['lichess_editor_w'] = 'https://lichess.org/editor/%s_w_%s' % (fen, castle_status)
+  vals['lichess_editor_b'] = 'https://lichess.org/editor/%s_b_%s' % (fen, castle_status)
 
-  vals['inverted_lichess_analysis_w'] = 'http://www.lichess.org/analysis/%s_w_%s' % (inverted_fen, inverted_castle_status)
-  vals['inverted_lichess_analysis_b'] = 'http://www.lichess.org/analysis/%s_b_%s' % (inverted_fen, inverted_castle_status)
-  vals['inverted_lichess_editor_w'] = 'http://www.lichess.org/editor/%s_w_%s' % (inverted_fen, inverted_castle_status)
-  vals['inverted_lichess_editor_b'] = 'http://www.lichess.org/editor/%s_b_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_analysis_w'] = 'https://lichess.org/analysis/%s_w_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_analysis_b'] = 'https://lichess.org/analysis/%s_b_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_editor_w'] = 'https://lichess.org/editor/%s_w_%s' % (inverted_fen, inverted_castle_status)
+  vals['inverted_lichess_editor_b'] = 'https://lichess.org/editor/%s_b_%s' % (inverted_fen, inverted_castle_status)
   
   return message_template.format(**vals)
 
