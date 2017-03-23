@@ -24,11 +24,9 @@ On a linux machine which has Tensorflow and SciPy installed
 
         sudo apt-get install python-numpy python-scipy python-matplotlib ipython ipython-notebook python-pandas python-sympy python-nose
 
-Download and unzip this directory somewhere : [tensorflow_chessbot](https://github.com/Elucidation/tensorflow_chessbot/archive/master.zip)
+Download the chessfenbot branch somewhere : [tensorflow_chessbot/chessfenbot](https://github.com/Elucidation/tensorflow_chessbot/archive/chessfenbot.zip) 
 
-Then, download and unzip this saved model to the same directory  : [tensorflow_chessbot_model_v01.zip](https://drive.google.com/open?id=0BwW6qsUNa47xeUNvQ2M0a053Y0U)
-
-The directory structure should look like `<SOMEWHERE>\tensorflow_chessbot-master\saved_models`
+*Alternatively clone the [chessfenbot branch](https://github.com/Elucidation/tensorflow_chessbot/tree/chessfenbot)*
 
 Now, to run pass the following arguments to `tensorflow_chessbot.py`
 
