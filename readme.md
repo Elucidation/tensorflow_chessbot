@@ -1,4 +1,4 @@
-TensorFlow Chessbot - /u/ChessFenBot [◕ _ ◕]<sup>\* *I make FENs*</sup>
+TensorFlow Chessbot - [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) [◕ _ ◕]<sup>\* *I make FENs*</sup>
 ---
 
 **TL;DR**: 
@@ -63,6 +63,8 @@ Similarly, a URL can be tested by calling with a URL:
     $ ./tensorflow_chessbot.py --url http://imgur.com/u4zF5Hj.png
 
 ### Reddit Bot
+
+*Code lives on the [chessfenbot branch](https://github.com/Elucidation/tensorflow_chessbot/tree/chessfenbot)*
 
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
 
