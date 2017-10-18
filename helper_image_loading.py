@@ -17,9 +17,11 @@ def loadImageGrayscale(img_file):
   # Convert to grayscale and return
   return img.convert("L")
 
-def loadImageFromURL(url):
+def loadImageFromURL(url, max_size_bytes=4000000):
   """Load image from url.
-  Or metadata url link from imgur"""
+
+  If the url has more data than max_size_bytes, fail out
+  Try and update with metadata url link if an imgur link"""
   
   # If imgur try to load from metadata
   url = tryUpdateImgurURL(url)
@@ -28,8 +30,17 @@ def loadImageFromURL(url):
   try:
     req = urllib2.Request(url, headers={'User-Agent' : "TensorFlow Chessbot"})
     con = urllib2.urlopen(req)
+    # Load up to max_size_bytes of data from url
+    data = con.read(max_size_bytes)
+    # If there is more, image is too big, skip
+    if con.read(1) != '':
+      print "Skipping, url data larger than %d bytes" % max_size_bytes
+      return None, url
+
+    # Process into PIL image
+    img = PIL.Image.open(StringIO(data))
     # Return PIL image and url used
-    return PIL.Image.open(StringIO(con.read())), url
+    return img, url
   except IOError, e:
     # Return None on failure to load image from url
     return None, url
