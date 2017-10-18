@@ -69,9 +69,13 @@ def loadImageFromPath(img_path):
   return PIL.Image.open(open(img_path,'rb'))
 
 
-def resizeAsNeeded(img, max_size=(2000,2000)):
+def resizeAsNeeded(img, max_size=(2000,2000), max_fail_size=(2000,2000)):
   if not PIL.Image.isImageType(img):
     img = PIL.Image.fromarray(img) # Convert to PIL Image if not already
+
+  # If image is larger than fail size, don't try resizing and give up
+  if img.size[0] > max_fail_size[0] or img.size[1] > max_fail_size[1]:
+    return None
 
   """Resize if image larger than max size"""
   if img.size[0] > max_size[0] or img.size[1] > max_size[1]:

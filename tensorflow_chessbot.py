@@ -149,7 +149,7 @@ class ChessboardPredictor(object):
   ## Wrapper for chessbot
   def makePrediction(self, url):
     """Try and return a FEN prediction and certainty for URL, return Nones otherwise"""
-    img, url = helper_image_loading.loadImageFromURL(url)
+    img, url = helper_image_loading.loadImageFromURL(url, max_size_bytes=2000000)
     result = [None, None, None]
     
     # Exit on failure to load image
@@ -159,6 +159,11 @@ class ChessboardPredictor(object):
 
     # Resize image if too large
     img = helper_image_loading.resizeAsNeeded(img)
+
+    # Exit on failure if image was too large teo resize
+    if img is None:
+      print('Image too large to resize: "%s"' % url)
+      return result
 
     # Look for chessboard in image, get corners and split chessboard into tiles
     tiles, corners = chessboard_finder.findGrayscaleTilesInImage(img)
