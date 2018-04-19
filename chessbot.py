@@ -71,7 +71,7 @@ def main(args):
   running = True
   reddit = praw.Reddit('CFB') # client credentials set up in local praw.ini file
   cfb = reddit.user.me() # ChessFenBot object
-  subreddit = reddit.subreddit('chess+chessbeginners+AnarchyChess+betterchess')
+  subreddit = reddit.subreddit('chess+chessbeginners+AnarchyChess+betterchess+chesspuzzles')
   predictor = tensorflow_chessbot.ChessboardPredictor()
 
   while running:
