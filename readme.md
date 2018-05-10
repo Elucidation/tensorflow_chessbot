@@ -1,5 +1,21 @@
 TensorFlow Chessbot - /u/ChessFenBot [◕ _ ◕]<sup>\* *I make FENs*</sup>
 ---
+### Command Line Interface (CLI)
+
+`tensorflow_chessbot.py` contains the library and script for running predictions on images passed by file or url.
+
+```
+$ ./tensorflow_chessbot.py -h
+usage: tensorflow_chessbot.py [-h] [--url URL] [--filepath FILEPATH]
+ 
+ Predict a chessboard FEN from supplied local image link or URL
+ 
+ optional arguments:
+   -h, --help           show this help message and exit
+   --url URL            URL of image (ex. http://imgur.com/u4zF5Hj.png)
+  --filepath FILEPATH  filepath to image (ex. u4zF5Hj.png)
+```
+
 ### Reddit Bot
 
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
