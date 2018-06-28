@@ -1,110 +1,153 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-  <title>Bounds</title>
-</head>
-<body>
+  <!-- Material Design Lite https://getmdl.io -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.2.0/material.indigo-pink.min.css">
+  <script defer src="https://code.getmdl.io/1.2.0/material.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h1>Overlaid Chessboard</h1>
-<canvas id="canvas">
-Your browser does not support the canvas element
-</canvas>
-<p>Original image</p>
-<img id='orig' src="" />
+  <!-- jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+  <title>[◕ _ ◕]* What ChessFenBot sees</title>
+</head>
+
+<body onload="main()" style="padding: 10px">
+<div style="text-align: center"></div>
+  <b style="padding: 5px; font-size: 20px;">What ChessFenBot sees [◕ _ ◕]*</b>
+  <table>
+    <tr style="vertical-align: top;">
+      <td>
+        <div style="background-color: rgb(235,235,235); padding: 15px">
+          <p style="text-align: center;">256x256 px input to <a href="https://github.com/Elucidation/tensorflow_chessbot">Tensorflow Chessbot</a></p>
+          <canvas id="canvas">Your browser does not support the canvas element.</canvas>
+        </div>
+      </td>
+      <td>
+        <div style="background-color: rgb(235,235,235); padding: 15px">
+          <p style="text-align: center;">Original image with overlay</p>
+          <canvas id="canvas_orig">Your browser does not support the canvas element.</canvas>
+        </div>
+      </td>
+    </tr>
+  </table>
+</body>
 
 <script>
+// Shows 256x256 px image.
+function showChessBotImage(ctx, canvas, img_url, corners) {
+  var img = new Image();
+  img.onload = function() {
+    // Cropped and resized to 256x256.
+    var dx = corners[2]-corners[0];
+    var dy = corners[3]-corners[1];
+    canvas.width = 256;
+    canvas.height = 256;
 
-var orig_img = $("#orig");
-var context = document.getElementById('canvas').getContext('2d');
+    // Draw as 256x256 px image.
+    ctx.drawImage(this,
+      corners[0], corners[1],
+      dx, dy,
+      0,0,
+      256, 256);
+  }
+  img.src = img_url;
+}
 
-var corners;
-var img_url;
+// Shows original image rescaled and with chessboard lines overlaid.
+function showCropImage(ctx, canvas, img_url, corners) {
+  var img = new Image();
+  img.onload = function() {
+    var scale = 1;
+    var max_side_px = 600;
+    if (Math.max(img.height, img.width) > max_side_px) {
+      scale = max_side_px / Math.max(img.height, img.width);
+    } 
+    // Set canvas size to image initially for drawing.
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    ctx.drawImage(this, 0, 0, img.width * scale, img.height * scale);
 
-parseParams = function() {
-  // passed via url, ?x0,y0,x1,y1,encodedURL
+    // Rescale corners first.
+    corners = corners.map(function(k) {return k * scale;});
+
+    // Draw chessboard overlay onto image.
+    drawChessboardOverlay(ctx, scale, corners);
+  }
+  img.src = img_url;
+}
+
+// Draw horizontal red lines and vertical green lines with red border 
+// around chessboard as an overlay on the provided context.
+function drawChessboardOverlay(ctx, scale, corners) {
+  // Draw horizontal lines.
+  ctx.beginPath();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#aa0000';
+  for (var i = 1; i < 8; i++) {
+    var dy = Math.round(corners[1] + i * (corners[3]-corners[1])/8);
+    ctx.moveTo(corners[0], dy);
+    ctx.lineTo(corners[2], dy);
+  }
+  ctx.stroke();
+  ctx.closePath();
+
+  // Draw vertical lines.
+  ctx.beginPath();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = '#00aa00';
+  for (var i = 1; i < 8; i++) {
+    var dx = Math.round(corners[0] + i * (corners[2]-corners[0])/8);
+    ctx.moveTo(dx, corners[1]);
+    ctx.lineTo(dx, corners[3]);
+  }
+  ctx.stroke();
+  ctx.closePath();
+
+  // Draw outer bounds of chessboard.
+  ctx.beginPath();
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = '#ff0000';
+  ctx.moveTo(corners[0], corners[1]);
+  ctx.lineTo(corners[2], corners[1]);
+  ctx.lineTo(corners[2], corners[3]);
+  ctx.lineTo(corners[0], corners[3]);
+  ctx.lineTo(corners[0], corners[1]);
+  ctx.stroke();
+  ctx.closePath();
+}
+
+// Pull out the corners and image URL from the passed in parameters.
+function parseParams() {
+  // Passed via url, ?x0,y0,x1,y1,encodedURL.
   var param_str = window.location.search.substring(1);
   var data = param_str.split(',');
   if (data.length == 5) {
-    corners = data.slice(0,4).map(function(k) {return Number(k);});
-    img_url = decodeURIComponent(data[4]);
+    var corners = data.slice(0,4).map(function(k) {return Number(k);});
+    var img_url = decodeURIComponent(data[4]);
+    return [corners, img_url];
+  } else {
+    return [null, null];
   }
 }
 
-// Get chessboard corners and image url
-parseParams();
+function main() {
+  // Get chessboard corners and image url from parameters.
+  var pair = parseParams();
+  var corners = pair[0];
+  var img_url = pair[1];
 
-// Original image shown unchanged
-orig_img.attr('src',img_url)
+  // ChessFenBot 256x256 px image.
+  var cfb_canvas = document.getElementById('canvas');
+  var cfb_context = cfb_canvas.getContext('2d');
+  showChessBotImage(cfb_context, cfb_canvas, img_url, corners);
 
-function drawChessboardOverlay() {
-  // Draw horizontal lines
-  context.beginPath();
-  context.lineWidth = 3;
-  context.strokeStyle = '#aa0000';
-  for (var i = 1; i < 8; i++) {
-    var dy = Math.round(corners[1] + i * (corners[3]-corners[1])/8);
-    context.moveTo(corners[0], dy);
-    context.lineTo(corners[2], dy);
-  }
-  context.stroke();
-  context.closePath();
-
-  // Draw vertical lines
-  context.beginPath();
-  context.lineWidth = 3;
-  context.strokeStyle = '#00aa00';
-  for (var i = 1; i < 8; i++) {
-    var dx = Math.round(corners[0] + i * (corners[2]-corners[0])/8);
-    context.moveTo(dx, corners[1]);
-    context.lineTo(dx, corners[3]);
-  }
-  context.stroke();
-  context.closePath();
-
-  // Draw outer bounds of chessboard
-  context.beginPath();
-  context.lineWidth = 10;
-  context.strokeStyle = '#ff0000';
-  context.moveTo(corners[0], corners[1]);
-  context.lineTo(corners[2], corners[1]);
-  context.lineTo(corners[2], corners[3]);
-  context.lineTo(corners[0], corners[3]);
-  context.lineTo(corners[0], corners[1]);
-  context.stroke();
-  context.closePath();
-
+  // Original image shown resized with overlay.
+  var orig_canvas = document.getElementById('canvas_orig');
+  var orig_ctx = orig_canvas.getContext('2d')
+  showCropImage(orig_ctx, orig_canvas, img_url, corners);
 }
-
-function showCropImage() {
-  // Load up your image.  Don't attempt to draw it until we know it's been loaded.  
-  var img = new Image();
-  img.onload = function() {
-    // Cropped and resized to 256x256
-    // var dx = corners[2]-corners[0];
-    // var dy = corners[3]-corners[1];
-    // context.drawImage(this,
-    //   corners[0], corners[1],
-    //   dx,
-    //   dy,
-    //   0,0,
-    //   256, 256);
-    
-    // Set canvas size to image
-    document.getElementById('canvas').width = img.width;
-    document.getElementById('canvas').height = img.height;
-    context.drawImage(this,0,0);
-
-    // Draw chessboard overlay onto image
-    drawChessboardOverlay();
-  }
-  img.src = img_url;
-
-}
-
-showCropImage();
-
-
 </script>
 
 </body>
