@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # TensorFlow Chessbot
@@ -151,6 +151,7 @@ def main(args):
   if args.filepath:
     # Load image from file
     img = helper_image_loading.loadImageFromPath(args.filepath)
+    args.url = None # Using filepath.
   else:
     img, args.url = helper_image_loading.loadImageFromURL(args.url)
 

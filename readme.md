@@ -2,6 +2,27 @@ TensorFlow Chessbot - /u/ChessFenBot [◕ _ ◕]<sup>\* *I make FENs*</sup>
 ---
 ### Command Line Interface (CLI)
 
+## Setting up the virtual environment
+
+This uses Python 3, pip3 and virtualenv, if you don't have these installed you can use:
+
+```
+sudo apt-get install python3-pip
+sudo pip3 install virtualenv
+```
+
+Then, create a new virtual environment, source it, and install the dependencies from `requirements.txt`.
+
+```
+virtualenv venv
+source venv/bin/activate
+pip3 install -r requirements.txt 
+python tensorflow_chessbot.py 
+
+```
+
+## Running the CLI
+
 `tensorflow_chessbot.py` contains the library and script for running predictions on images passed by file or url.
 
 ```
@@ -14,6 +35,12 @@ usage: tensorflow_chessbot.py [-h] [--url URL] [--filepath FILEPATH]
    -h, --help           show this help message and exit
    --url URL            URL of image (ex. http://imgur.com/u4zF5Hj.png)
   --filepath FILEPATH  filepath to image (ex. u4zF5Hj.png)
+```
+
+For example to run on the provided `example_input.png` ![example_input](example_input.png)
+
+```
+./tensorflow_chessbot.py --filepath example_input.png
 ```
 
 ### Reddit Bot
