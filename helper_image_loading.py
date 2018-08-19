@@ -96,7 +96,7 @@ def resizeAsNeeded(img, max_size=(2000,2000), max_fail_size=(2000,2000)):
 
 def getVisualizeLink(corners, url):
   """Return online link to visualize found corners for url"""
-  encoded_url = urllib.quote(url, safe='')
+  encoded_url = urllib.parse.quote(url, safe='')
   
   return ("http://tetration.xyz/tensorflow_chessbot/overlay_chessboard.html?%d,%d,%d,%d,%s" % 
     (corners[0], corners[1], corners[2], corners[3], encoded_url))

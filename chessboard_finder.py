@@ -347,27 +347,28 @@ def findGrayscaleTilesInImage(img):
   # Return both the tiles as well as chessboard corner locations in the image
   return tiles, corners
 
-def plotTiles(tiles):
-  """Plot color or grayscale tiles as 8x8 subplots"""
-  from matplotlib import pyplot as plt
-  plt.figure(figsize=(6,6))
-  files = "ABCDEFGH"
-  for rank in range(8): # rows (numbers)
-    for file in range(8): # columns (letters)
-      plt.subplot(8,8,(7-rank)*8 + file + 1) # Plot rank reverse order to match image
+# DEBUG
+# from matplotlib import pyplot as plt
+# def plotTiles(tiles):
+#   """Plot color or grayscale tiles as 8x8 subplots"""
+#   plt.figure(figsize=(6,6))
+#   files = "ABCDEFGH"
+#   for rank in range(8): # rows (numbers)
+#     for file in range(8): # columns (letters)
+#       plt.subplot(8,8,(7-rank)*8 + file + 1) # Plot rank reverse order to match image
       
-      if tiles.shape[2] == 64:
-        # Grayscale
-        tile = tiles[:,:,(rank*8+file)] # grayscale
-        plt.imshow(tile, interpolation='None', cmap='gray', vmin = 0, vmax = 1)
-      else:
-        #Color
-        tile = tiles[:,:,3*(rank*8+file):3*(rank*8+file+1)] # color
-        plt.imshow(tile, interpolation='None',)
+#       if tiles.shape[2] == 64:
+#         # Grayscale
+#         tile = tiles[:,:,(rank*8+file)] # grayscale
+#         plt.imshow(tile, interpolation='None', cmap='gray', vmin = 0, vmax = 1)
+#       else:
+#         #Color
+#         tile = tiles[:,:,3*(rank*8+file):3*(rank*8+file+1)] # color
+#         plt.imshow(tile, interpolation='None',)
       
-      plt.axis('off')
-      plt.title('%s %d' % (files[file], rank+1), fontsize=6)
-  plt.show()
+#       plt.axis('off')
+#       plt.title('%s %d' % (files[file], rank+1), fontsize=6)
+#   plt.show()
 
 def main(url):
   print("Loading url %s..." % url)
@@ -404,7 +405,6 @@ def main(url):
     print('\tNo corners found in image')
 
 if __name__ == '__main__':
-  from matplotlib import pyplot as plt
   np.set_printoptions(suppress=True, precision=2)
   parser = argparse.ArgumentParser(description='Find orthorectified chessboard corners in image')
   parser.add_argument('urls', default=['https://i.redd.it/1uw3h772r0fy.png'],
