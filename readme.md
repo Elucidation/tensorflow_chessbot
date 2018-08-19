@@ -17,8 +17,6 @@ Then, create a new virtual environment, source it, and install the dependencies 
 virtualenv venv
 source venv/bin/activate
 pip3 install -r requirements.txt 
-python tensorflow_chessbot.py 
-
 ```
 
 ## Running the CLI
