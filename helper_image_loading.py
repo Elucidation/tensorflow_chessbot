@@ -9,7 +9,7 @@ try:
   from urllib.parse import quote
 except ImportError:
   # Python 2
-  from urllib2 import urlopen
+  from urllib2 import urlopen, Request
   from urllib2 import quote
 
 
