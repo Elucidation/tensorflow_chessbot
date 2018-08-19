@@ -1,4 +1,4 @@
-FROM gcr.io/tensorflow/tensorflow:latest
+FROM tensorflow/tensorflow
 MAINTAINER Sam <elucidation@gmail.com>
 
 # Install python and pip and use pip to install the python reddit api PRAW
