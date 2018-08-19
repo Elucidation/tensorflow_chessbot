@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Pass in image of online chessboard screenshot, returns corners of chessboard
 # usage: chessboard_finder.py [-h] urls [urls ...]

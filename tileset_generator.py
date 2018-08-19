@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # usage: tileset_generator.py [-h] input_folder output_folder
 
