@@ -2,8 +2,9 @@ import numpy as np
 
 # Imports for visualization
 import PIL.Image
-from cStringIO import StringIO
-import urllib2
+from io import BytesIO
+import urllib
+
 
 # Imports for pulling metadata from imgur url
 import requests
@@ -28,20 +29,20 @@ def loadImageFromURL(url, max_size_bytes=4000000):
 
   # Try loading image from url directly
   try:
-    req = urllib2.Request(url, headers={'User-Agent' : "TensorFlow Chessbot"})
-    con = urllib2.urlopen(req)
+    req = urllib.request.Request(url, headers={'User-Agent' : "TensorFlow Chessbot"})
+    con = urllib.request.urlopen(req)
     # Load up to max_size_bytes of data from url
     data = con.read(max_size_bytes)
     # If there is more, image is too big, skip
-    if con.read(1) != '':
-      print "Skipping, url data larger than %d bytes" % max_size_bytes
+    if len(con.read(1)) != 0:
+      print("Skipping, url data larger than %d bytes" % max_size_bytes)
       return None, url
 
     # Process into PIL image
-    img = PIL.Image.open(StringIO(data))
+    img = PIL.Image.open(BytesIO(data))
     # Return PIL image and url used
     return img, url
-  except IOError, e:
+  except IOError as e:
     # Return None on failure to load image from url
     return None, url
 
@@ -95,7 +96,7 @@ def resizeAsNeeded(img, max_size=(2000,2000), max_fail_size=(2000,2000)):
 
 def getVisualizeLink(corners, url):
   """Return online link to visualize found corners for url"""
-  encoded_url = urllib2.quote(url, safe='')
+  encoded_url = urllib.quote(url, safe='')
   
   return ("http://tetration.xyz/tensorflow_chessbot/overlay_chessboard.html?%d,%d,%d,%d,%s" % 
     (corners[0], corners[1], corners[2], corners[3], encoded_url))

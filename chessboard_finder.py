@@ -282,7 +282,7 @@ def getChessTilesColor(img, corners):
 
   return tiles
 
-def getChessTilesGray(img, corners):
+def getChessBoardGray(img, corners):
   # img is a grayscale image
   # corners = (x0, y0, x1, y1) for top-left corner to bot-right corner of board
   height, width = img.shape
@@ -304,7 +304,10 @@ def getChessTilesGray(img, corners):
   chessboard_img_resized = np.asarray( \
         PIL.Image.fromarray(chessboard_img) \
         .resize([256,256], PIL.Image.BILINEAR), dtype=np.uint8) / 255.0
+  return chessboard_img_resized
 
+def getChessTilesGray(img, corners):
+  chessboard_img_resized = getChessBoardGray(img, corners)
   return getTiles(chessboard_img_resized)
 
 
