@@ -10,7 +10,7 @@ RUN apt-get -y update && apt-get install -y \
    && apt-get clean
 
 # Install python reddit api related files
-RUN pip install praw==4.3.0 beautifulsoup4==4.4.1 lxml==3.3.3 Pillow==4.0.0 html5lib==1.0b8
+RUN pip3 install praw==4.3.0 beautifulsoup4==4.4.1 lxml==3.3.3 Pillow==4.0.0 html5lib==1.0b8
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
