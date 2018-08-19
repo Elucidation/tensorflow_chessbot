@@ -43,6 +43,33 @@ For example to run on the provided `example_input.png` ![example_input](example_
 ./tensorflow_chessbot.py --filepath example_input.png
 ```
 
+Should output something like:
+
+```
+(venv) $ ./tensorflow_chessbot.py --filepath example_input.png
+
+--- Prediction on file example_input.png ---
+   Loading model 'saved_models/frozen_model.pb'
+   Model restored.
+Closing session.
+Per-tile certainty:
+[[1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1.]
+ [1. 1. 1. 1. 1. 1. 1. 1.]]
+Certainty range [0.999975 - 1], Avg: 0.999997
+---
+Predicted FEN: bn4kN/p5bp/1p3npB/3p4/8/5Q2/PPP2PPP/R3R1K1
+Final Certainty: 100.0%
+```
+
+Which would be ![predicted](http://www.fen-to-image.com/image/60/bn4kN/p5bp/1p3npB/3p4/8/5Q2/PPP2PPP/R3R1K1.png)
+
+
 ### Reddit Bot
 
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
