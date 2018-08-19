@@ -1,8 +1,8 @@
 TensorFlow Chessbot - /u/ChessFenBot [◕ _ ◕]<sup>\* *I make FENs*</sup>
 ---
-### Command Line Interface (CLI)
+## Command Line Interface (CLI)
 
-## Setting up the virtual environment
+### Setting up the virtual environment
 
 This uses Python 3, pip3 and virtualenv, if you don't have these installed you can use:
 
@@ -19,7 +19,7 @@ source venv/bin/activate
 pip3 install -r requirements.txt 
 ```
 
-## Running the CLI
+### Running the CLI
 
 `tensorflow_chessbot.py` contains the library and script for running predictions on images passed by file or url.
 
@@ -68,7 +68,7 @@ Final Certainty: 100.0%
 Which would be ![predicted](http://www.fen-to-image.com/image/60/bn4kN/p5bp/1p3npB/3p4/8/5Q2/PPP2PPP/R3R1K1.png)
 
 
-### Reddit Bot
+## Reddit Bot
 
 [/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
 
@@ -105,11 +105,11 @@ ChessFenBot automatically replied to [this reddit post](https://www.reddit.com/r
 > 
 > <sup>Yes I am a machine learning bot | [`How I work`](https://github.com/Elucidation/tensorflow_chessbot 'Must go deeper') | Reply with a corrected FEN or [Editor link)](http://www.lichess.org/editor/r1b1r1k1/5pp1/p1pR1nNp/8/2B5/2q5/P1P1Q1PP/5R1K) to add to my next training dataset</sup>
 
-## Running
+## Running with Docker
 
 Automated build on Docker available at `elucidation/tensorflow_chessbot`
 
-Using your own `auth_config.py` which has the form
+Populate your own `auth_config.py` which has the form
 
 ```py
 USERNAME='<NAME>'
@@ -117,7 +117,8 @@ PASSWORD='<PASSWORD>'
 USER_AGENT='<AGENT INFO>'
 ```
 
-You can download and run the docker image using:
+
+Then you can download and run the docker image passing this config file using:
 
 ```
 docker run -dt --rm --name cfb -v <local_auth_file>:/tcb/auth_config.py elucidation/tensorflow_chessbot
