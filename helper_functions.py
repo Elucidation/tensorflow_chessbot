@@ -2,55 +2,57 @@ import numpy as np
 
 # Imports for visualization
 import PIL.Image
-from IPython.display import clear_output, Image, display
 
-def display_array(a, fmt='jpeg', rng=[0,1]):
-  """Display an array as a picture."""
-  a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value
-  a = np.uint8(np.clip(a*255, 0, 255))
-  f = StringIO()
+# DEBUG for ipython notebook visualizations.
+# from IPython.display import clear_output, Image, display
 
-  PIL.Image.fromarray(np.asarray(a, dtype=np.uint8)).save(f, fmt)
-  display(Image(data=f.getvalue()))
+# def display_array(a, fmt='jpeg', rng=[0,1]):
+#   """Display an array as a picture."""
+#   a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value
+#   a = np.uint8(np.clip(a*255, 0, 255))
+#   f = StringIO()
 
-def display_weight(a, fmt='jpeg', rng=[0,1]):
-  """Display an array as a color picture."""
-  a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value
-  a = np.uint8(np.clip(a*255, 0, 255))
-  f = StringIO()
+#   PIL.Image.fromarray(np.asarray(a, dtype=np.uint8)).save(f, fmt)
+#   display(Image(data=f.getvalue()))
 
-  v = np.asarray(a, dtype=np.uint8)
+# def display_weight(a, fmt='jpeg', rng=[0,1]):
+#   """Display an array as a color picture."""
+#   a = (a - rng[0])/float(rng[1] - rng[0]) # normalized float value
+#   a = np.uint8(np.clip(a*255, 0, 255))
+#   f = StringIO()
 
-  # blue is high intensity, red is low
-  # Negative
-  r = 255-v.copy()
-  r[r<127] = 0
-  r[r>=127] = 255
+#   v = np.asarray(a, dtype=np.uint8)
+
+#   # blue is high intensity, red is low
+#   # Negative
+#   r = 255-v.copy()
+#   r[r<127] = 0
+#   r[r>=127] = 255
   
-  # None
-  g = np.zeros_like(v)
+#   # None
+#   g = np.zeros_like(v)
   
-  # Positive
-  b = v.copy()
-  b[b<127] = 0
-  b[b>=127] = 255
+#   # Positive
+#   b = v.copy()
+#   b[b<127] = 0
+#   b[b>=127] = 255
   
-  #np.clip((v-127)/2,0,127)*2
+#   #np.clip((v-127)/2,0,127)*2
 
-  #-1 to 1
-  intensity = np.abs(2.*a-1)
+#   #-1 to 1
+#   intensity = np.abs(2.*a-1)
 
-  rgb = np.uint8(np.dstack([r,g,b]*intensity))
+#   rgb = np.uint8(np.dstack([r,g,b]*intensity))
 
-  PIL.Image.fromarray(rgb).save(f, fmt)
-  display(Image(data=f.getvalue(), width=100))
+#   PIL.Image.fromarray(rgb).save(f, fmt)
+#   display(Image(data=f.getvalue(), width=100))
 
-def display_image(a, fmt='png'):
-  """Display an image as a picture in-line."""
-  f = StringIO()
+# def display_image(a, fmt='png'):
+#   """Display an image as a picture in-line."""
+#   f = StringIO()
 
-  PIL.Image.fromarray(np.asarray(a, dtype=np.uint8)).save(f, fmt)
-  display(Image(data=f.getvalue()))
+#   PIL.Image.fromarray(np.asarray(a, dtype=np.uint8)).save(f, fmt)
+#   display(Image(data=f.getvalue()))
 
 # FEN related
 def getFENtileLabel(fen,letter,number):
@@ -128,8 +130,8 @@ def loadFENtiles(image_filepaths):
 
   for i, image_filepath in enumerate(image_filepaths):
     if i % 1000 == 0:
-      #print "On #%d/%d : %s" % (i,image_filepaths.size, image_filepath)
-      print ".",
+      #print("On #%d/%d : %s" % (i,image_filepaths.size, image_filepath))
+      print(".",)
     
     # Image
     images[i,:,:,0] = np.asarray(PIL.Image.open(image_filepath), dtype=np.uint8)
@@ -139,7 +141,7 @@ def loadFENtiles(image_filepaths):
     _rank = image_filepath[-6]
     _file = int(image_filepath[-5])
     labels[i,:] = getFENtileLabel(fen, _rank, _file)
-  print "Done"
+  print("Done")
   return images, labels
 
 def loadLabels(image_filepaths):
@@ -158,7 +160,7 @@ def loadImages(image_filepaths):
   training_data = np.zeros([image_filepaths.size, 32, 32, 1], dtype=np.uint8)
   for i, image_filepath in enumerate(image_filepaths):
     if i % 100 == 0:
-      print "On #%d/%d : %s" % (i,image_filepaths.size, image_filepath)
+      print("On #%d/%d : %s" % (i,image_filepaths.size, image_filepath))
     img = PIL.Image.open(image_filepath)
     training_data[i,:,:,0] = np.asarray(img, dtype=np.uint8)
   return training_data
