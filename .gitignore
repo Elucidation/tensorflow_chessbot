@@ -4,6 +4,8 @@
 *.jpg
 *.gif
 
+!example_input.png
+
 # Ignore chessboard input images and tile outputs
 chessboards/
 tiles/
