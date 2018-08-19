@@ -47,80 +47,31 @@ from helper_functions import shortenFEN
 import helper_image_loading
 import chessboard_finder
 
+def load_graph(frozen_graph_filepath):
+    # Load and parse the protobuf file to retrieve the unserialized graph_def.
+    with tf.gfile.GFile(frozen_graph_filepath, "rb") as f:
+        graph_def = tf.GraphDef()
+        graph_def.ParseFromString(f.read())
+
+    # Import graph def and return.
+    with tf.Graph().as_default() as graph:
+        # Prefix every op/nodes in the graph.
+        tf.import_graph_def(graph_def, name="tcb")
+    return graph
+
 class ChessboardPredictor(object):
   """ChessboardPredictor using saved model"""
-  def __init__(self, model_path='saved_models/model_10000.ckpt'):
-    def weight_variable(shape, name=""):
-        initial = tf.truncated_normal(shape, stddev=0.1)
-        return tf.Variable(initial, name)
+  def __init__(self, frozen_graph_path='saved_models/frozen_model.pb'):
+    # Restore model using a frozen graph.
+    print("\t Loading model '%s'" % frozen_graph_path)
+    graph = load_graph(frozen_graph_path)
+    self.sess = tf.Session(graph=graph)
 
-    def bias_variable(shape, name=""):
-        initial = tf.constant(0.1, shape=shape)
-        return tf.Variable(initial, name)
-
-    def conv2d(x, W):
-        return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
-
-    def max_pool_2x2(x, name=""):
-        return tf.nn.max_pool(x, ksize=[1, 2, 2, 1],
-                            strides=[1, 2, 2, 1], padding='SAME', name=name)
-
-    self.x = tf.placeholder(tf.float32, [None, 32*32])
-
-    # First layer : 32 features
-    W_conv1 = weight_variable([5, 5, 1, 32], name='W1')
-    b_conv1 = bias_variable([32], name='B1')
-
-    x_image = tf.reshape(self.x, [-1,32,32,1])
-
-    h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1, name='Conv1')
-    h_pool1 = max_pool_2x2(h_conv1, name='Pool1')
-
-    # Second convolutional layer : 64 features
-    W_conv2 = weight_variable([5, 5, 32, 64], name='W2')
-    b_conv2 = bias_variable([64], name='B2')
-
-    h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2, name='Conv2')
-    h_pool2 = max_pool_2x2(h_conv2, name='Pool2')
-
-    # Densely connected layer : 1024 neurons, image size now 8x8
-    W_fc1 = weight_variable([8 * 8 * 64, 1024], name='W3')
-    b_fc1 = bias_variable([1024], name='B3')
-
-    h_pool2_flat = tf.reshape(h_pool2, [-1, 8*8*64], name='Pool3')
-    h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1, 'MatMult3')
-
-    # Dropout
-    self.keep_prob = tf.placeholder("float", name='KeepProb')
-    h_fc1_drop = tf.nn.dropout(h_fc1, self.keep_prob, name='Drop4')
-
-    # Readout layer : softmax, 13 features
-    W_fc2 = weight_variable([1024, 13], name='W5')
-    b_fc2 = bias_variable([13], name='B5')
-
-    self.y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2, name='Ypredict')
-
-    # Ground truth labels if exist 
-    y_ = tf.placeholder(tf.float32, [None, 13], name='Ytruth')
-
-    cross_entropy = -tf.reduce_sum(y_*tf.log(self.y_conv), name='CrossEntropy')
-
-    # train_step = tf.train.GradientDescentOptimizer(0.001).minimize(cross_entropy)
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
-
-    correct_prediction = tf.equal(tf.argmax(self.y_conv,1), tf.argmax(y_,1), name='CorrectPrediction')
-    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"), name='Accuracy')
-
-    # Add ops to save and restore all the variables.
-    saver = tf.train.Saver()
-
-    # Start Interactive session for rest of notebook (else we'd want to close session)
-    self.sess = tf.Session()
-    tf.reset_default_graph() # clear out graph
-
-    # Restore model from checkpoint
-    print("\t Loading model '%s'" % model_path)
-    saver.restore(self.sess, model_path)
+    # Connect input/output pipes to model.
+    self.x = graph.get_tensor_by_name('tcb/Input:0')
+    self.keep_prob = graph.get_tensor_by_name('tcb/KeepProb:0')
+    self.prediction = graph.get_tensor_by_name('tcb/prediction:0')
+    self.probabilities = graph.get_tensor_by_name('tcb/probabilities:0')
     print("\t Model restored.")
 
   def getPrediction(self, tiles):
@@ -133,7 +84,9 @@ class ChessboardPredictor(object):
     validation_set = np.swapaxes(np.reshape(tiles, [32*32, 64]),0,1)
 
     # Run neural network on data
-    guess_prob, guessed = self.sess.run([self.y_conv, tf.argmax(self.y_conv,1)], feed_dict={self.x: validation_set, self.keep_prob: 1.0})
+    guess_prob, guessed = self.sess.run(
+      [self.probabilities, self.prediction], 
+      feed_dict={self.x: validation_set, self.keep_prob: 1.0})
     
     # Prediction bounds
     a = np.array(list(map(lambda x: x[0][x[1]], zip(guess_prob, guessed))))
