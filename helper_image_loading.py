@@ -3,7 +3,8 @@ import numpy as np
 # Imports for visualization
 import PIL.Image
 from io import BytesIO
-import urllib
+import urllib.parse
+import urllib.request
 
 
 # Imports for pulling metadata from imgur url
