@@ -12,7 +12,9 @@
 #   -h, --help  show this help message and exit
 
 
+# sudo apt-get install libatlas-base-dev for numpy error, see https://github.com/Kitt-AI/snowboy/issues/262
 import numpy as np
+# sudo apt-get install libopenjp2-7 libtiff5
 import PIL.Image
 import argparse
 from time import time
