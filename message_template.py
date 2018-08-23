@@ -32,6 +32,7 @@ with a certainty of **{certainty:.3f}%**. *{pithy_message}*
 
 ^(Yes I am a machine learning bot | )
 [^(`How I work`)](http://github.com/Elucidation/tensorflow_chessbot 'Must go deeper')
+^( | )[^(`Try your own images`)](http://tetration.xyz/ChessboardFenTensorflowJs/)
 ^( | Reply with a corrected FEN to add to my next training dataset)
 
 """
