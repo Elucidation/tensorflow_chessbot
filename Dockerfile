@@ -7,6 +7,7 @@ RUN apt-get -y update && apt-get install -y \
   libxml2-dev \
   libxslt1-dev \
   libjpeg-dev \
+  vim \
    && apt-get clean
 
 # Install python reddit api related files
