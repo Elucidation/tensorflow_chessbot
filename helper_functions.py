@@ -120,6 +120,12 @@ def lengthenFEN(fen):
             .replace('6','111111').replace('5','11111') \
             .replace('4','1111').replace('3','111').replace('2','11')
 
+def unflipFEN(fen):
+    if len(fen) < 71:
+        fen = lengthenFEN(FEN)
+    return '/'.join([ r[::-1] for r in fen.split('/') ][::-1])
+
+
 # For Training in IPython Notebooks
 def loadFENtiles(image_filepaths):
   """Load Tiles with FEN string in filename for labels.

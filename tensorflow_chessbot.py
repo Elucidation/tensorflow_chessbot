@@ -43,14 +43,14 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' # Ignore Tensorflow INFO debug messages
 import tensorflow as tf
 import numpy as np
 
-from helper_functions import shortenFEN
+from helper_functions import shortenFEN, unflipFEN
 import helper_image_loading
 import chessboard_finder
 
 def load_graph(frozen_graph_filepath):
     # Load and parse the protobuf file to retrieve the unserialized graph_def.
-    with tf.gfile.GFile(frozen_graph_filepath, "rb") as f:
-        graph_def = tf.GraphDef()
+    with tf.io.gfile.GFile(frozen_graph_filepath, "rb") as f:
+        graph_def = tf.compat.v1.GraphDef()
         graph_def.ParseFromString(f.read())
 
     # Import graph def and return.
@@ -65,7 +65,7 @@ class ChessboardPredictor(object):
     # Restore model using a frozen graph.
     print("\t Loading model '%s'" % frozen_graph_path)
     graph = load_graph(frozen_graph_path)
-    self.sess = tf.Session(graph=graph)
+    self.sess = tf.compat.v1.Session(graph=graph)
 
     # Connect input/output pipes to model.
     self.x = graph.get_tensor_by_name('tcb/Input:0')
@@ -183,6 +183,8 @@ def main(args):
   predictor = ChessboardPredictor()
   fen, tile_certainties = predictor.getPrediction(tiles)
   predictor.close()
+  if args.unflip:
+      fen = unflipFEN(fen)
   short_fen = shortenFEN(fen)
   # Use the worst case certainty as our final uncertainty score
   certainty = tile_certainties.min()
@@ -192,7 +194,8 @@ def main(args):
   print("Certainty range [%g - %g], Avg: %g" % (
     tile_certainties.min(), tile_certainties.max(), tile_certainties.mean()))
 
-  print("---\nPredicted FEN: %s" % short_fen)
+  active = args.active
+  print("---\nPredicted FEN:\n%s %s - - 0 1" % (short_fen, active))
   print("Final Certainty: %.1f%%" % (certainty*100))
 
 if __name__ == '__main__':
@@ -201,6 +204,8 @@ if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Predict a chessboard FEN from supplied local image link or URL')
   parser.add_argument('--url', default='http://imgur.com/u4zF5Hj.png', help='URL of image (ex. http://imgur.com/u4zF5Hj.png)')
   parser.add_argument('--filepath', help='filepath to image (ex. u4zF5Hj.png)')
+  parser.add_argument('--unflip', default=False, action='store_true', help='revert the image of a flipped chessboard')
+  parser.add_argument('--active', default='w')
   args = parser.parse_args()
   main(args)
 
