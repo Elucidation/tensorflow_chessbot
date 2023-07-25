@@ -66,11 +66,11 @@ Similarly, a URL can be tested by calling with a URL:
 
     $ ./tensorflow_chessbot.py --url http://imgur.com/u4zF5Hj.png
 
-### Reddit Bot
+### ~~Reddit Bot~~ *Deprecated*
 
 *Code lives on the [chessfenbot branch](https://github.com/Elucidation/tensorflow_chessbot/tree/chessfenbot)*
 
-[/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) will automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
+[/u/ChessFenBot](https://www.reddit.com/user/ChessFenBot) used to (~2015-2016) automatically reply to [reddit /r/chess](https://www.reddit.com/r/) new topic image posts that contain detectable online chessboard screenshots. A screenshot either ends in `.png`, `.jpg`, `.gif`, or is an `imgur` link. 
 
 It replies with a [lichess](https://lichess.org) analysis link for that layout and a predicted [FEN](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation).
 
